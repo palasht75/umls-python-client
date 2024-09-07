@@ -1,6 +1,10 @@
 import requests
 import logging
-from relationship_labels import RELATION_LABELS
+# from relationship_labels import RELATION_LABELS
+import os
+
+# print("Api-key --> ", os.getenv("API_KEY"))
+API_KEY = os.getenv("API_KEY")
 
 #TODO: Enable Documentation
 #TODO: Logging must be enabled
@@ -102,7 +106,7 @@ class CUIAPI(UMLSAPIBase):
 # Main program to demonstrate usage of the refactored classes
 if __name__ == "__main__":
     # Replace with your UMLS API key
-    api_key = "cf2c642d-21f2-4f5b-97fe-b271c5f30591"
+    api_key = API_KEY
     cui = "C0009044"  # Example CUI
     source = "SNOMEDCT_US"
     source_id = "9468002"
