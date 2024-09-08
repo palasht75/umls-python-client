@@ -1,5 +1,7 @@
 import requests
 import logging
+from baseAPI.umls_api_base import UMLSAPIBase
+
 # from relationship_labels import RELATION_LABELS
 import os
 
@@ -12,22 +14,6 @@ API_KEY = os.getenv("API_KEY")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger()
-
-class UMLSAPIBase:
-    """Base class for common functionality like request handling."""
-    
-    def __init__(self, api_key, version="current"):
-        self.api_key = api_key
-        self.base_url = "https://uts-ws.nlm.nih.gov/rest"
-        self.version = version
-
-    def _handle_response(self, response):
-        """Handle API responses."""
-        if response.status_code == 200:
-            return response.json()
-        else:
-            return {"error": f"API request failed with status code {response.status_code}: {response.text}"}
-
 
 class CUIAPI(UMLSAPIBase):
     """Class for handling CUI-based UMLS API requests."""
