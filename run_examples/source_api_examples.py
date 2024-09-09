@@ -107,14 +107,14 @@ if __name__ == "__main__":
     )
     logger.info(f"Source Relations: {relations}")
 
-    #############################
-    # Retrieve Full Hierarchy Recursively
-    #############################
-    logger.info(
-        "Recursively fetching the full hierarchy for the concept (parents and children):"
-    )
-    full_hierarchy = source_api.get_full_hierarchy_recursive(source, source_id, depth=1, return_indented=True)
-    logger.info(f"Full Recursive Hierarchy:\n {full_hierarchy} \n")
+    # #############################
+    # # Retrieve Full Hierarchy Recursively
+    # #############################
+    # logger.info(
+    #     "Recursively fetching the full hierarchy for the concept (parents and children):"
+    # )
+    # full_hierarchy = source_api.get_full_hierarchy_recursive(source, source_id, depth=1, return_indented=True)
+    # logger.info(f"Full Recursive Hierarchy:\n {full_hierarchy} \n")
     
 
     #############################
@@ -150,9 +150,9 @@ if __name__ == "__main__":
     #############################
     logger.info("Comparing two concepts for similarity or differences:")
     comparison = source_api.compare_concepts(
-        source, source_id, "9468003", return_indented=True
+        source, id1=source_id, id2="9468003", return_indented=True
     )  # Example of another concept ID
-    logger.info(f"Comparison between concepts: {comparison}")
+    logger.info(f"Comparison between concepts:\n {comparison}")
 
     #############################
     # Get Concept Coverage Across Medical Systems
