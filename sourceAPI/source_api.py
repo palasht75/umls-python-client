@@ -1,6 +1,6 @@
 import logging
 import os
-
+import json
 import requests
 
 from baseAPI.umls_api_base import UMLSAPIBase
@@ -104,7 +104,7 @@ class SourceAPI(UMLSAPIBase):
         response = requests.get(url, params=params)
         return self._handle_response(response)
 
-    def get_concept_pathways(self, source, id, max_depth=2):
+    def get_concept_pathways(self, source, id, max_depth=2, return_indented=True):
         """
         Retrieve full parent-child pathways from the root to the concept and its descendants iteratively.
 
@@ -123,8 +123,8 @@ class SourceAPI(UMLSAPIBase):
             # Fetch parents and children using the source API methods
             parents_response = self.get_source_parents(source, concept_id)
             children_response = self.get_source_children(source, concept_id)
-            parents = parents_response.get("result", [])
-            children = children_response.get("result", [])
+            parents = json.loads(parents_response).get("result", [])
+            children = json.loads(children_response).get("result", [])
 
             # Cache the results to avoid redundant API calls
             cache[concept_id] = {"parents": parents, "children": children}
@@ -166,7 +166,10 @@ class SourceAPI(UMLSAPIBase):
             for child in children:
                 queue.append((child.get("ui"), depth + 1))
 
-        return pathways
+        if return_indented:
+            return json.dumps(pathways, indent=4)
+        else:
+            pathways
 
     def get_relations(self, relations_url):
         """Make a second request to the relations endpoint and retrieve related concepts."""
@@ -175,17 +178,17 @@ class SourceAPI(UMLSAPIBase):
         logger.info(f"Fetching relations from URL: {relations_url}")
         return self._handle_response(response)
 
-    def get_related_concepts_by_relation_type(self, source, id, relation_type):
+    def get_related_concepts_by_relation_type(self, source, id, relation_type, return_indented=True):
         """Retrieve related concepts based on the specified relationship type."""
         # Step 1: Fetch the source concept
         concept_response = self.get_source_concept(source, id)
 
         # Step 2: Check if 'relations' is an endpoint URL
-        relations_url = concept_response.get("result", {}).get("relations", "")
+        relations_url = json.loads(concept_response).get("result", {}).get("relations", "")
         if isinstance(relations_url, str) and relations_url.startswith("http"):
             # If it's a URL, make a second request to fetch relations
             relations_response = self.get_relations(relations_url)
-            relations = relations_response.get("result", [])
+            relations = json.loads(relations_response).get("result", [])
         else:
             logger.warning(f"No valid relations endpoint found for concept: {id}")
             return {relation_type: []}
@@ -212,12 +215,15 @@ class SourceAPI(UMLSAPIBase):
                 f"Found {len(related_concepts)} related concepts for relation type '{relation_type}'."
             )
 
-        return {relation_type: related_concepts}
-
+        if return_indented:
+            return json.dumps({relation_type: related_concepts}, indent=4)
+        else:
+            {relation_type: related_concepts}
+#https://www.nlm.nih.gov/research/umls/knowledge_sources/metathesaurus/release/attribute_names.html
     def get_concept_attributes(self, source, id):
         """Retrieve specific attributes of a source-asserted concept."""
         attributes_response = self.get_source_attributes(source, id)
-        attributes = attributes_response.get("result", [])
+        attributes = json.loads(attributes_response).get("result", [])
         attribute_dict = {
             attribute.get("name"): attribute.get("value")
             for attribute in attributes
@@ -225,14 +231,14 @@ class SourceAPI(UMLSAPIBase):
         }
         return attribute_dict
 
-    def compare_concepts(self, source, id1, id2):
+    def compare_concepts(self, source, id1, id2, return_indented=True):
         """Compare two concepts by examining their relationships, ancestors, and descendants."""
-        concept_1_ancestors = self.get_source_ancestors(source, id1).get("result", [])
-        concept_2_ancestors = self.get_source_ancestors(source, id2).get("result", [])
-        concept_1_descendants = self.get_source_descendants(source, id1).get(
+        concept_1_ancestors = json.loads(self.get_source_ancestors(source, id1)).get("result", [])
+        concept_2_ancestors = json.loads(self.get_source_ancestors(source, id2)).get("result", [])
+        concept_1_descendants = json.loads(self.get_source_descendants(source, id1)).get(
             "result", []
         )
-        concept_2_descendants = self.get_source_descendants(source, id2).get(
+        concept_2_descendants = json.loads(self.get_source_descendants(source, id2)).get(
             "result", []
         )
         comparison = {
@@ -273,30 +279,45 @@ class SourceAPI(UMLSAPIBase):
                 ],
             },
         }
-        return comparison
 
-    def get_concept_coverage(self, source, id):
+        if return_indented:
+            return json.dumps(comparison, indent=4)
+        else:
+            comparison
+
+    def get_concept_coverage(self, source, id, return_indented=True):
         """Check in which medical systems the concept is present."""
         concept_response = self.get_source_concept(source, id)
-        source_systems = concept_response.get("result", {}).get("rootSource", [])
-        return {"concept_id": id, "covered_in_sources": source_systems}
+        source_systems = json.loads(concept_response).get("result", {}).get("rootSource", [])
+        if return_indented:
+            return json.dumps({"concept_id": id, "covered_in_sources": source_systems}, indent=4)
+        else:
+            {"concept_id": id, "covered_in_sources": source_systems}
 
-    def aggregate_children_by_attribute(self, source, id, attribute_name):
+    def aggregate_children_by_attribute(self, source, id, attribute_name, return_indented=True):
         """Aggregate children of a concept based on a specific attribute."""
         children_response = self.get_source_children(source, id)
-        children = children_response.get("result", [])
+        children = json.loads(children_response).get("result", [])
         attribute_aggregation = {}
+
         for child in children:
             child_id = child.get("ui")
             child_attributes = self.get_concept_attributes(source, child_id)
+
+            # Log the attributes of the child for user awareness
+            logger.info(f"Child ID: {child_id}, Available Attributes: {child_attributes}")
+
+            # Check if the requested attribute exists, otherwise use "Unknown"
             attribute_value = child_attributes.get(attribute_name, "Unknown")
-            attribute_aggregation.setdefault(attribute_value, []).append(
-                child.get("name")
-            )
-        return attribute_aggregation
+            attribute_aggregation.setdefault(attribute_value, []).append(child.get("name"))
+
+        if return_indented:
+            return json.dumps(attribute_aggregation, indent=4)
+        else:
+            return attribute_aggregation
 
     # New function to get the family tree structure
-    def get_family_tree(self, source, id, max_depth=3):
+    def get_family_tree(self, source, id, max_depth=3, return_indented=True):
         """Retrieve a family tree structure with relationships organized in a hierarchy of ancestors and descendants."""
 
         def fetch_ancestors(concept_id, hierarchy, depth=0):
@@ -304,7 +325,7 @@ class SourceAPI(UMLSAPIBase):
             if depth >= max_depth:
                 return
             response = self.get_source_parents(source, concept_id)
-            parents = response.get("result", [])
+            parents = json.loads(response).get("result", [])
             if not parents:
                 logger.info(f"No more parents found for: {concept_id}")
                 return
@@ -322,7 +343,7 @@ class SourceAPI(UMLSAPIBase):
             if depth >= max_depth:
                 return
             response = self.get_source_children(source, concept_id)
-            children = response.get("result", [])
+            children = json.loads(response).get("result", [])
             if not children:
                 logger.info(f"No more children found for: {concept_id}")
                 return
@@ -345,7 +366,7 @@ class SourceAPI(UMLSAPIBase):
 
         # Fetch source concept details to get the name
         source_concept = self.get_source_concept(source, id)
-        family_tree["concept_name"] = source_concept.get("result", {}).get(
+        family_tree["concept_name"] = json.loads(source_concept).get("result", {}).get(
             "name", "Unknown Concept"
         )
 
@@ -353,7 +374,10 @@ class SourceAPI(UMLSAPIBase):
         fetch_ancestors(id, family_tree["ancestors"])
         fetch_descendants(id, family_tree["descendants"])
 
-        return family_tree
+        if return_indented:
+            return json.dumps(family_tree, indent=4)
+        else:
+            return family_tree
 
     def get_source_relations(
         self,
@@ -389,7 +413,7 @@ class SourceAPI(UMLSAPIBase):
         return self._handle_response(response)
 
     # Custom recursive method with logging
-    def get_full_hierarchy_recursive(self, source, id, depth=0):
+    def get_full_hierarchy_recursive(self, source, id, depth=0, return_indented = True):
         """Recursively retrieve all ancestors and descendants until root/leaf, with logging."""
 
         def fetch_ancestors_recursive(concept_id, hierarchy, depth=0):
@@ -398,7 +422,8 @@ class SourceAPI(UMLSAPIBase):
                 f"Fetching ancestors at depth {depth} for concept: {concept_id}"
             )
             response = self.get_source_ancestors(source, concept_id)
-            ancestors = response.get("result", [])
+            import json
+            ancestors = json.loads(response).get("result", [])
             if not ancestors:
                 logger.info(f"No more ancestors found for: {concept_id}")
                 return
@@ -416,7 +441,7 @@ class SourceAPI(UMLSAPIBase):
                 f"Fetching descendants at depth {depth} for concept: {concept_id}"
             )
             response = self.get_source_descendants(source, concept_id)
-            descendants = response.get("result", [])
+            descendants = json.loads(response).get("result", [])
             if not descendants:
                 logger.info(f"No more descendants found for: {concept_id}")
                 return
@@ -434,8 +459,11 @@ class SourceAPI(UMLSAPIBase):
         # Recursively fetch ancestors and descendants with logging
         fetch_ancestors_recursive(id, hierarchy, depth=depth)
         fetch_descendants_recursive(id, hierarchy, depth=depth)
-
-        return hierarchy
+        
+        if return_indented:
+            return json.dumps(hierarchy, indent=4)
+        else:
+            return hierarchy
 
     def print_available_relations(self):
         """Print available relationship labels."""

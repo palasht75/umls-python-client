@@ -60,103 +60,37 @@ if __name__ == "__main__":
     #############################
     logger.info("Fetching immediate parent concepts for the specified source and ID:")
     parents = source_api.get_source_parents(source, source_id)
-    logger.info(f"Parents Information: {parents}")
+    logger.info(f"Parents Information:\n {parents}")
 
     #############################
     # Retrieve Immediate Children for a Source-Asserted Identifier
     #############################
     logger.info("Fetching immediate child concepts for the specified source and ID:")
     children = source_api.get_source_children(source, source_id)
-    logger.info(f"Children Information: {children}")
+    logger.info(f"Children Information:\n {children}")
 
     #############################
     # Retrieve Ancestors for a Source-Asserted Identifier
     #############################
     logger.info("Fetching ancestors for the specified source and ID:")
     ancestors = source_api.get_source_ancestors(source, source_id)
-    logger.info(f"Ancestors Information: {ancestors}")
+    logger.info(f"Ancestors Information:\n {ancestors}")
 
     #############################
     # Retrieve Descendants for a Source-Asserted Identifier
     #############################
     logger.info("Fetching descendants for the specified source and ID:")
     descendants = source_api.get_source_descendants(source, source_id)
-    logger.info(f"Descendants Information: {descendants}")
+    logger.info(f"Descendants Information:\n {descendants}")
 
     #############################
     # Retrieve Attributes for a Source-Asserted Identifier
     #############################
     logger.info("Fetching attributes for the specified source and ID:")
     attributes = source_api.get_source_attributes(source, source_id)
-    logger.info(f"Attributes Information: {attributes}")
+    logger.info(f"Attributes Information:\n {attributes}")
 
-    #############################
-    # Retrieve Full Hierarchy Recursively
-    #############################
-    logger.info(
-        "Recursively fetching the full hierarchy for the concept (parents and children):"
-    )
-    full_hierarchy = source_api.get_full_hierarchy_recursive(source, source_id, depth=0)
-    logger.info(f"Full Recursive Hierarchy: {full_hierarchy}")
-
-    #############################
-    # Retrieve Family Tree (Parent-Child Relationships)
-    #############################
-    logger.info(
-        "Fetching family tree (parents and children) with a maximum depth of 3:"
-    )
-    family_tree = source_api.get_family_tree(source, source_id, max_depth=3)
-    logger.info(f"Family Tree: {family_tree}")
-
-    #############################
-    # Fetch Concept Pathways (Parent-Child Pathways)
-    #############################
-    logger.info(
-        "Fetching parent-child pathways for the concept with a specified depth:"
-    )
-    pathways = source_api.get_concept_pathways(source, source_id, max_depth=0)
-    logger.info(f"Concept Pathways: {pathways}")
-
-    #############################
-    # Fetch Related Concepts Based on Relationship Type (e.g., 'RB' for broader)
-    #############################
-    relation_type = "RB"  # Broader relationship
-    logger.info(
-        "Fetching related concepts based on the specified relationship type (e.g., broader concepts):"
-    )
-    related_concepts = source_api.get_related_concepts_by_relation_type(
-        source, source_id, relation_type
-    )
-    logger.info(f"Related Concepts (Broader Relationship): {related_concepts}")
-
-    #############################
-    # Compare Two Concepts
-    #############################
-    logger.info("Comparing two concepts for similarity or differences:")
-    comparison = source_api.compare_concepts(
-        source, source_id, "9468003"
-    )  # Example of another concept ID
-    logger.info(f"Comparison between concepts: {comparison}")
-
-    #############################
-    # Get Concept Coverage Across Medical Systems
-    #############################
-    logger.info("Fetching coverage of the concept across multiple medical systems:")
-    coverage = source_api.get_concept_coverage(source, source_id)
-    logger.info(f"Concept Coverage: {coverage}")
-
-    #############################
-    # Aggregate Children by Attribute
-    #############################
-    logger.info(
-        "Aggregating children of the concept by a specific attribute (replace with actual attribute):"
-    )
-    aggregated_children = source_api.aggregate_children_by_attribute(
-        source, source_id, "attribute_name_here"
-    )
-    logger.info(f"Aggregated Children by Attribute: {aggregated_children}")
-
-    #############################
+        #############################
     # Fetch Source Relations with Custom Parameters
     #############################
     logger.info(
@@ -172,3 +106,72 @@ if __name__ == "__main__":
         page_size=10,
     )
     logger.info(f"Source Relations: {relations}")
+
+    #############################
+    # Retrieve Full Hierarchy Recursively
+    #############################
+    logger.info(
+        "Recursively fetching the full hierarchy for the concept (parents and children):"
+    )
+    full_hierarchy = source_api.get_full_hierarchy_recursive(source, source_id, depth=1, return_indented=True)
+    logger.info(f"Full Recursive Hierarchy:\n {full_hierarchy} \n")
+    
+
+    #############################
+    # Retrieve Family Tree (Parent-Child Relationships)
+    #############################
+    logger.info("Fetching family tree (parents and children) with a maximum depth of 3:")
+    family_tree = source_api.get_family_tree(source, source_id, max_depth=3, return_indented=True)
+    logger.info(f"Family Tree:\n {family_tree}")
+
+    #############################
+    # Fetch Concept Pathways (Parent-Child Pathways)
+    #############################
+    logger.info(
+        "Fetching parent-child pathways for the concept with a specified depth:"
+    )
+    pathways = source_api.get_concept_pathways(source, source_id, max_depth=0, return_indented=True)
+    logger.info(f"Concept Pathways:\n {pathways}")
+
+    #############################
+    # Fetch Related Concepts Based on Relationship Type (e.g., 'RB' for broader)
+    #############################
+    relation_type = "RB"  # Broader relationship
+    logger.info(
+        "Fetching related concepts based on the specified relationship type (e.g., broader concepts):"
+    )
+    related_concepts = source_api.get_related_concepts_by_relation_type(
+        source, source_id, relation_type, return_indented=True
+    )
+    logger.info(f"Related Concepts (Broader Relationship):\n {related_concepts}")
+
+    #############################
+    # Compare Two Concepts
+    #############################
+    logger.info("Comparing two concepts for similarity or differences:")
+    comparison = source_api.compare_concepts(
+        source, source_id, "9468003", return_indented=True
+    )  # Example of another concept ID
+    logger.info(f"Comparison between concepts: {comparison}")
+
+    #############################
+    # Get Concept Coverage Across Medical Systems
+    #############################
+    logger.info("Fetching coverage of the concept across multiple medical systems:")
+    coverage = source_api.get_concept_coverage(source, source_id, return_indented=True)
+    logger.info(f"Concept Coverage: {coverage}")
+
+    ############################
+    # Aggregate Children by Attribute
+    ############################
+    logger.info(
+        "Aggregating children of the concept by a specific attribute (replace with actual attribute):"
+    )
+    #https://www.nlm.nih.gov/research/umls/knowledge_sources/metathesaurus/release/attribute_names.html
+
+    aggregated_children = source_api.aggregate_children_by_attribute(
+        source, source_id, "CTV3ID", return_indented=True
+    )
+    logger.info(f"Aggregated Children by Attribute:\n {aggregated_children}")
+
+
