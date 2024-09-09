@@ -3,6 +3,10 @@ import logging
 from sourceAPI.relationship_labels import RELATION_LABELS
 from baseAPI.umls_api_base import UMLSAPIBase
 
+import os
+
+# print("Api-key --> ", os.getenv("API_KEY"))
+API_KEY = os.getenv("API_KEY")
 
 # Configure logging
 logging.basicConfig(
