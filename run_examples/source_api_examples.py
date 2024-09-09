@@ -1,9 +1,12 @@
-import os
 import logging
+import os
+
 from sourceAPI.source_api import SourceAPI
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger()
 
 # Fetch the API key from environment variables
@@ -16,7 +19,7 @@ if __name__ == "__main__":
     if not api_key:
         logger.error("API Key is missing. Please set it in your environment.")
         exit(1)
-    
+
     # Specify the source (e.g., SNOMEDCT_US) and a concept ID
     source = "SNOMEDCT_US"
     source_id = "9468002"  # Example concept ID
@@ -27,17 +30,28 @@ if __name__ == "__main__":
     #############################
     # Retrieve Source Concept Information
     #############################
-    logger.info("Retrieving source concept information for the specified source and ID:")
+    logger.info(
+        "Retrieving source concept information for the specified source and ID:"
+    )
     concept_info = source_api.get_source_concept(source, source_id)
     logger.info(f"Source Concept Information: {concept_info}")
 
     #############################
     # Retrieve Atoms for a Source-Asserted Identifier
     #############################
-    logger.info("Fetching atoms for the source-asserted identifier with various filters:")
+    logger.info(
+        "Fetching atoms for the source-asserted identifier with various filters:"
+    )
     atoms = source_api.get_source_atoms(
-        source, source_id, sabs="SNOMEDCT_US", ttys="PT", language="ENG", 
-        include_obsolete=True, include_suppressible=False, page_number=1, page_size=10
+        source,
+        source_id,
+        sabs="SNOMEDCT_US",
+        ttys="PT",
+        language="ENG",
+        include_obsolete=True,
+        include_suppressible=False,
+        page_number=1,
+        page_size=10,
     )
     logger.info(f"Atoms Information: {atoms}")
 
@@ -79,21 +93,27 @@ if __name__ == "__main__":
     #############################
     # Retrieve Full Hierarchy Recursively
     #############################
-    logger.info("Recursively fetching the full hierarchy for the concept (parents and children):")
+    logger.info(
+        "Recursively fetching the full hierarchy for the concept (parents and children):"
+    )
     full_hierarchy = source_api.get_full_hierarchy_recursive(source, source_id, depth=0)
     logger.info(f"Full Recursive Hierarchy: {full_hierarchy}")
 
     #############################
     # Retrieve Family Tree (Parent-Child Relationships)
     #############################
-    logger.info("Fetching family tree (parents and children) with a maximum depth of 3:")
+    logger.info(
+        "Fetching family tree (parents and children) with a maximum depth of 3:"
+    )
     family_tree = source_api.get_family_tree(source, source_id, max_depth=3)
     logger.info(f"Family Tree: {family_tree}")
 
     #############################
     # Fetch Concept Pathways (Parent-Child Pathways)
     #############################
-    logger.info("Fetching parent-child pathways for the concept with a specified depth:")
+    logger.info(
+        "Fetching parent-child pathways for the concept with a specified depth:"
+    )
     pathways = source_api.get_concept_pathways(source, source_id, max_depth=0)
     logger.info(f"Concept Pathways: {pathways}")
 
@@ -101,15 +121,21 @@ if __name__ == "__main__":
     # Fetch Related Concepts Based on Relationship Type (e.g., 'RB' for broader)
     #############################
     relation_type = "RB"  # Broader relationship
-    logger.info("Fetching related concepts based on the specified relationship type (e.g., broader concepts):")
-    related_concepts = source_api.get_related_concepts_by_relation_type(source, source_id, relation_type)
+    logger.info(
+        "Fetching related concepts based on the specified relationship type (e.g., broader concepts):"
+    )
+    related_concepts = source_api.get_related_concepts_by_relation_type(
+        source, source_id, relation_type
+    )
     logger.info(f"Related Concepts (Broader Relationship): {related_concepts}")
 
     #############################
     # Compare Two Concepts
     #############################
     logger.info("Comparing two concepts for similarity or differences:")
-    comparison = source_api.compare_concepts(source, source_id, "9468003")  # Example of another concept ID
+    comparison = source_api.compare_concepts(
+        source, source_id, "9468003"
+    )  # Example of another concept ID
     logger.info(f"Comparison between concepts: {comparison}")
 
     #############################
@@ -122,16 +148,27 @@ if __name__ == "__main__":
     #############################
     # Aggregate Children by Attribute
     #############################
-    logger.info("Aggregating children of the concept by a specific attribute (replace with actual attribute):")
-    aggregated_children = source_api.aggregate_children_by_attribute(source, source_id, "attribute_name_here")
+    logger.info(
+        "Aggregating children of the concept by a specific attribute (replace with actual attribute):"
+    )
+    aggregated_children = source_api.aggregate_children_by_attribute(
+        source, source_id, "attribute_name_here"
+    )
     logger.info(f"Aggregated Children by Attribute: {aggregated_children}")
 
     #############################
     # Fetch Source Relations with Custom Parameters
     #############################
-    logger.info("Fetching available source relations for the concept with optional filters:")
+    logger.info(
+        "Fetching available source relations for the concept with optional filters:"
+    )
     relations = source_api.get_source_relations(
-        source, source_id, include_relation_labels=None, include_obsolete=False, 
-        include_suppressible=False, page_number=1, page_size=10
+        source,
+        source_id,
+        include_relation_labels=None,
+        include_obsolete=False,
+        include_suppressible=False,
+        page_number=1,
+        page_size=10,
     )
     logger.info(f"Source Relations: {relations}")

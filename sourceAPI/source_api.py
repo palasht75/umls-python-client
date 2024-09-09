@@ -1,9 +1,10 @@
-import requests
 import logging
-from sourceAPI.relationship_labels import RELATION_LABELS
-from baseAPI.umls_api_base import UMLSAPIBase
-
 import os
+
+import requests
+
+from baseAPI.umls_api_base import UMLSAPIBase
+from sourceAPI.relationship_labels import RELATION_LABELS
 
 # print("Api-key --> ", os.getenv("API_KEY"))
 API_KEY = os.getenv("API_KEY")
@@ -18,7 +19,7 @@ logger = logging.getLogger()
 class SourceAPI(UMLSAPIBase):
     """Class for handling source-asserted UMLS API requests."""
 
-    def get_source_concept(self, source :str, id: str):
+    def get_source_concept(self, source: str, id: str):
         """Retrieve information about a known source concept or descriptor."""
         url = f"{self.base_url}/content/{self.version}/source/{source}/{id}"
         params = {"apiKey": self.api_key}
@@ -441,5 +442,3 @@ class SourceAPI(UMLSAPIBase):
         logger.info("Available relation labels:")
         for code, description in RELATION_LABELS.items():
             print(f"{code}: {description}")
-
-

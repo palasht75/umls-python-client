@@ -1,9 +1,12 @@
-import os
 import logging
+import os
+
 from searchAPI.search_api import SearchAPI
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger()
 
 # Fetch the API key from environment variables
@@ -16,7 +19,7 @@ if __name__ == "__main__":
     if not api_key:
         logger.error("API Key is missing. Please set it in your environment.")
         exit(1)
-    
+
     # Initialize the SearchAPI class with your API key
     search_api = SearchAPI(api_key)
 
@@ -32,7 +35,7 @@ if __name__ == "__main__":
         return_id_type="concept",  # Return UMLS Concept Unique Identifiers (CUIs)
         search_type="words",  # Search using word-based matching
         page_number=1,  # Start from the first page
-        page_size=10  # Limit the result to 10 items per page
+        page_size=10,  # Limit the result to 10 items per page
     )
     logger.info(f"Search Results for 'diabetes': {search_results}")
 
@@ -45,22 +48,28 @@ if __name__ == "__main__":
         sabs="SNOMEDCT_US",  # Limit the search to SNOMEDCT_US vocabulary
         return_id_type="concept",  # Return CUIs
         page_number=1,  # Start from the first page
-        page_size=10  # Limit to 10 results per page
+        page_size=10,  # Limit to 10 results per page
     )
-    logger.info(f"Search Results for 'hypertension' in SNOMEDCT_US: {search_results_vocab}")
+    logger.info(
+        f"Search Results for 'hypertension' in SNOMEDCT_US: {search_results_vocab}"
+    )
 
     #############################
     # Perform an Exact Match Search
     #############################
-    logger.info("Performing an exact match search for the term 'myocardial infarction':")
+    logger.info(
+        "Performing an exact match search for the term 'myocardial infarction':"
+    )
     search_results_exact = search_api.search(
         search_string="myocardial infarction",  # Search for the exact term
         search_type="exact",  # Use exact matching
         return_id_type="concept",  # Return CUIs
         page_number=1,  # Start from the first page
-        page_size=10  # Limit to 10 results per page
+        page_size=10,  # Limit to 10 results per page
     )
-    logger.info(f"Exact Match Search Results for 'myocardial infarction': {search_results_exact}")
+    logger.info(
+        f"Exact Match Search Results for 'myocardial infarction': {search_results_exact}"
+    )
 
     #############################
     # Perform a Partial Search
@@ -71,7 +80,7 @@ if __name__ == "__main__":
         partial_search=True,  # Enable partial search
         return_id_type="concept",  # Return CUIs
         page_number=1,  # Start from the first page
-        page_size=10  # Limit to 10 results per page
+        page_size=10,  # Limit to 10 results per page
     )
     logger.info(f"Partial Search Results for 'fracture': {search_results_partial}")
 
@@ -84,6 +93,8 @@ if __name__ == "__main__":
         include_obsolete=True,  # Include obsolete terms in the search
         return_id_type="concept",  # Return CUIs
         page_number=1,  # Start from the first page
-        page_size=10  # Limit to 10 results per page
+        page_size=10,  # Limit to 10 results per page
     )
-    logger.info(f"Search Results for 'insulin' including obsolete terms: {search_results_obsolete}")
+    logger.info(
+        f"Search Results for 'insulin' including obsolete terms: {search_results_obsolete}"
+    )

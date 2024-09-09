@@ -1,9 +1,12 @@
-from umlsclient import UMLSClient
-import os
 import logging
+import os
+
+from umlsclient import UMLSClient
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger()
 
 # Fetch the API key from environment variables
@@ -24,7 +27,9 @@ logger.info(f"Search Results for 'diabetes': {search_results}")
 # Retrieve Source Concept Information using the Source API
 #############################
 logger.info("Fetching source concept information for SNOMEDCT_US concept '9468002':")
-source_concept = umls_client.sourceAPI.get_source_concept(source="SNOMEDCT_US", id="9468002")
+source_concept = umls_client.sourceAPI.get_source_concept(
+    source="SNOMEDCT_US", id="9468002"
+)
 logger.info(f"Source Concept Information: {source_concept}")
 
 #############################
