@@ -1,7 +1,8 @@
 import logging
 
 import requests
-
+from utils.utils import handle_response_with_format
+from utils.save_output import save_output_to_file
 from baseAPI.umls_api_base import UMLSAPIBase
 
 # Configure logging
@@ -9,7 +10,6 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger()
-
 
 class SemanticNetworkAPI(UMLSAPIBase):
     """
@@ -22,16 +22,17 @@ class SemanticNetworkAPI(UMLSAPIBase):
         version (str): The version of the UMLS release to use (inherited from UMLSAPIBase).
     """
 
-    def get_semantic_type(self, tui: str):
+    def get_semantic_type(self, tui: str,save_to_file: bool = False,file_path: str = "semantic_network_results.txt", return_indented : bool = True, **kwargs):
         """
         Retrieve information about a semantic type using its TUI (Type Unique Identifier).
-
         Args:
             tui (str): The TUI identifier for the semantic type you want to retrieve.
-
         Returns:
             dict: The semantic type information retrieved from the UMLS API.
         """
+        if "format" in kwargs:
+            logger.warning("Format is unavailable for this function, it will be enabled in future.")
+
         # Construct the URL for the semantic network endpoint
         url = f"{self.base_url}/semantic-network/{self.version}/TUI/{tui}"
         params = {"apiKey": self.api_key}
@@ -46,5 +47,11 @@ class SemanticNetworkAPI(UMLSAPIBase):
             logger.error(f"Error during API request: {e}")
             return {"error": f"Request failed: {e}"}
 
+        if save_to_file:
+            save_output_to_file(response=self._handle_response(response), file_path=file_path)
+
         # Handle the response
-        return self._handle_response(response)
+        return handle_response_with_format(
+                response=self._handle_response(response),
+                return_indented=return_indented,
+            )

@@ -1,13 +1,15 @@
 import logging
 import os
 from umlsclient import UMLSClient
-from searchAPI.search_api import SearchAPI
+
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger()
+
+PATH = r"C:\Users\palas\OneDrive\Desktop\umls-apis\python-umls-apis\output"
 
 # Fetch the API key from environment variables
 API_KEY = os.getenv("API_KEY")
@@ -51,7 +53,7 @@ if __name__ == "__main__":
         page_size=10,  # Limit to 10 results per page
     )
     logger.info(
-        f"Search Results for 'hypertension' in SNOMEDCT_US: {search_results_vocab}"
+        f"Search Results for 'hypertension' in SNOMEDCT_US:\n {search_results_vocab}"
     )
 
     #############################
@@ -94,7 +96,9 @@ if __name__ == "__main__":
         return_id_type="concept",  # Return CUIs
         page_number=1,  # Start from the first page
         page_size=10,  # Limit to 10 results per page
-        format="rdf"
+        format="rdf",
+        save_to_file=True,
+        file_path=os.path.join(PATH, "insulin_search.txt")
     )
     logger.info(
         f"Search Results for 'insulin' including obsolete terms: {search_results_obsolete}"

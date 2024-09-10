@@ -2,7 +2,6 @@ import logging
 import os
 import sys
 from umlsclient import UMLSClient
-from sourceAPI.source_api import SourceAPI
 
 # Configure logging
 logging.basicConfig(

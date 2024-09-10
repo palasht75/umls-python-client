@@ -5,7 +5,7 @@ from typing import Any, Dict, Union, Optional
 import requests
 from baseAPI.umls_api_base import UMLSAPIBase
 from utils.utils import handle_response_with_format
-
+from utils.save_output import save_output_to_file
 # print("Api-key --> ", os.getenv("API_KEY"))
 API_KEY = os.getenv("API_KEY")
 
@@ -624,12 +624,7 @@ class SourceAPI(UMLSAPIBase):
 
         # Save to file if required
         if save_to_file:
-            try:
-                with open(file_path, "w", encoding="utf-8") as f:
-                    f.write(json.dumps(hierarchy, indent=4))
-                logger.info(f"Output saved to {file_path}")
-            except Exception as e:
-                logger.error(f"Failed to save output to {file_path}: {e}")
+            save_output_to_file(response=hierarchy, file_path=file_path)
 
         # Return the hierarchy in the requested format
         if return_indented:

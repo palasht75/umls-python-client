@@ -55,7 +55,11 @@ def add_triples_from_dict(g: Graph, data: Dict, UMLS: Namespace):
         UMLS (Namespace): The RDF namespace.
     """
     # Use the 'ui' or 'concept' field as the subject URI, fallback to a generic URI if not available
-    subject_uri = URIRef(data.get("uri", f"{UMLS}unknown_concept"))
+    if data.get("uri") != None:
+        subject_uri = URIRef(data.get("uri", f"{UMLS}unknown_concept"))
+    else:
+        subject_uri = URIRef(data.get("ui", f"{UMLS}unknown_concept"))
+    
 
     # Define a list of key fields that are common across multiple UMLS APIs
     common_fields = [
