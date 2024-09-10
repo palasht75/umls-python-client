@@ -1,11 +1,12 @@
 import logging
 import os
+import sys
 
 from sourceAPI.source_api import SourceAPI
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s", force=True
 )
 logger = logging.getLogger()
 
@@ -37,6 +38,7 @@ if __name__ == "__main__":
         source, source_id, return_indented=False, format="rdf"
     )
     logger.info(f"Source Concept Information:\n {concept_info}")
+    sys.stdout.flush()
 
     #############################
     # Retrieve Atoms for a Source-Asserted Identifier
@@ -64,13 +66,15 @@ if __name__ == "__main__":
     logger.info("Fetching immediate parent concepts for the specified source and ID:")
     parents = source_api.get_source_parents(source, source_id, format="rdf")
     logger.info(f"Parents Information:\n {parents}")
+    sys.stdout.flush()
 
     #############################
     # Retrieve Immediate Children for a Source-Asserted Identifier
     #############################
     logger.info("Fetching immediate child concepts for the specified source and ID:")
-    children = source_api.get_source_children(source, source_id)
+    children = source_api.get_source_children(source, source_id, format="rdf")
     logger.info(f"Children Information:\n {children}")
+    sys.stdout.flush()
 
     #############################
     # Retrieve Ancestors for a Source-Asserted Identifier
@@ -78,6 +82,7 @@ if __name__ == "__main__":
     logger.info("Fetching ancestors for the specified source and ID:")
     ancestors = source_api.get_source_ancestors(source, source_id)
     logger.info(f"Ancestors Information:\n {ancestors}")
+    sys.stdout.flush()
 
     #############################
     # Retrieve Descendants for a Source-Asserted Identifier
@@ -85,6 +90,7 @@ if __name__ == "__main__":
     logger.info("Fetching descendants for the specified source and ID:")
     descendants = source_api.get_source_descendants(source, source_id)
     logger.info(f"Descendants Information:\n {descendants}")
+    sys.stdout.flush()
 
     #############################
     # Retrieve Attributes for a Source-Asserted Identifier
@@ -92,6 +98,7 @@ if __name__ == "__main__":
     logger.info("Fetching attributes for the specified source and ID:")
     attributes = source_api.get_source_attributes(source, source_id)
     logger.info(f"Attributes Information:\n {attributes}")
+    sys.stdout.flush()
 
     #############################
     # Fetch Source Relations with Custom Parameters
@@ -108,6 +115,8 @@ if __name__ == "__main__":
         page_number=1,
         page_size=10,
     )
+    logger.info(f"Source Relations:\n {relations}")
+    sys.stdout.flush()
     logger.info(f"Source Relations: {relations}")
 
     # #############################
@@ -129,6 +138,7 @@ if __name__ == "__main__":
         source, source_id, max_depth=3, return_indented=True
     )
     logger.info(f"Family Tree:\n {family_tree}")
+    sys.stdout.flush()
 
     #############################
     # Fetch Concept Pathways (Parent-Child Pathways)
@@ -140,6 +150,7 @@ if __name__ == "__main__":
         source, source_id, max_depth=0, return_indented=True
     )
     logger.info(f"Concept Pathways:\n {pathways}")
+    sys.stdout.flush()
 
     #############################
     # Fetch Related Concepts Based on Relationship Type (e.g., 'RB' for broader)
@@ -152,6 +163,7 @@ if __name__ == "__main__":
         source, source_id, relation_type, return_indented=True
     )
     logger.info(f"Related Concepts (Broader Relationship):\n {related_concepts}")
+    sys.stdout.flush()
 
     #############################
     # Compare Two Concepts
@@ -161,6 +173,7 @@ if __name__ == "__main__":
         source, id1=source_id, id2="9468003", return_indented=True
     )  # Example of another concept ID
     logger.info(f"Comparison between concepts:\n {comparison}")
+    sys.stdout.flush()
 
     #############################
     # Get Concept Coverage Across Medical Systems
@@ -168,6 +181,7 @@ if __name__ == "__main__":
     logger.info("Fetching coverage of the concept across multiple medical systems:")
     coverage = source_api.get_concept_coverage(source, source_id, return_indented=True)
     logger.info(f"Concept Coverage: {coverage}")
+    sys.stdout.flush()
 
     ############################
     # Aggregate Children by Attribute
@@ -181,3 +195,15 @@ if __name__ == "__main__":
         source, source_id, "CTV3ID", return_indented=True
     )
     logger.info(f"Aggregated Children by Attribute:\n {aggregated_children}")
+    sys.stdout.flush()
+
+    # WIP
+    # #############################
+    # # Retrieve Full Hierarchy Recursively
+    # #############################
+    # logger.info(
+    #     "Recursively fetching the full hierarchy for the concept (parents and children):"
+    # )
+    # full_hierarchy = source_api.get_full_hierarchy_recursive(source, source_id, depth=1, return_indented=True)
+    # logger.info(f"Full Recursive Hierarchy:{full_hierarchy} ")
+    # sys.stdout.flush()
