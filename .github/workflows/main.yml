@@ -29,13 +29,13 @@ jobs:
         run: |
           black .
 
-      # If you want to commit the changes automatically back to the repo:
-      - name: Commit and push changes
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git add .
-          git commit -m "Apply isort and black formatting"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # This token is automatically provided by GitHub Actions
+      # # If you want to commit the changes automatically back to the repo:
+      # - name: Commit and push changes
+      #   run: |
+      #     git config --global user.name "GitHub Actions"
+      #     git config --global user.email "actions@github.com"
+      #     git add .
+      #     git commit -m "Apply isort and black formatting"
+      #     git push
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # This token is automatically provided by GitHub Actions
