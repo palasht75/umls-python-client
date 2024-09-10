@@ -18,7 +18,7 @@ class UMLSAPIBase:
         base_url (str): The base URL for the UMLS API.
         return_indented (bool): Whether or not to return indented JSON by default.
     """
-    def __init__(self, api_key: str, version: str = "current", return_indented: bool = True):
+    def __init__(self, api_key: str, version: str = "current"):
         """
         Initialize the UMLSAPIBase class with the API key, version, and return behavior.
         Args:
@@ -34,7 +34,7 @@ class UMLSAPIBase:
         self.api_key = api_key
         self.base_url = "https://uts-ws.nlm.nih.gov/rest"
         self.version = version
-        self.return_indented = return_indented
+        # self.return_indented = return_indented
 
     def _format_json(self, data: Dict[str, Any]) -> str:
         """
@@ -59,8 +59,8 @@ class UMLSAPIBase:
         if response.status_code == 200:
             try:
                 response_json = response.json()  # Parse response as JSON
-                if self.return_indented:
-                    return self._format_json(response_json)  # Return formatted JSON string
+                # if self.return_indented:
+                #     return self._format_json(response_json)  # Return formatted JSON string
                 return response_json  # Return raw JSON
             except ValueError as e:
                 logger.error(f"Error parsing JSON response: {e}")
@@ -74,7 +74,8 @@ class UMLSAPIBase:
                 "resolution": "Visit the UMLS API documentation for further details on how to obtain or renew your API key.",
                 "documentation_url": "https://documentation.uts.nlm.nih.gov/rest/authentication.html",
             }
-            return self._format_json(error_response) if self.return_indented else error_response
+            return error_response
+            # return self._format_json(error_response) if self.return_indented else error_response
 
         # Handle Forbidden (403)
         if response.status_code == 403:
@@ -83,8 +84,8 @@ class UMLSAPIBase:
                 "error": "Access denied. You do not have permission to access this resource.",
                 "resolution": "Ensure that your API key has the appropriate permissions.",
             }
-            return self._format_json(error_response) if self.return_indented else error_response
-
+            # return self._format_json(error_response) if self.return_indented else error_response
+            return error_response
         # Handle Not Found (404)
         if response.status_code == 404:
             logger.error("Not Found: The requested resource does not exist.")
@@ -92,8 +93,8 @@ class UMLSAPIBase:
                 "error": "Resource not found. The requested resource could not be found.",
                 "resolution": "Check the endpoint or resource identifier in the request.",
             }
-            return self._format_json(error_response) if self.return_indented else error_response
-
+            # return self._format_json(error_response) if self.return_indented else error_response
+            return error_response
         # Handle other client or server errors (4xx or 5xx)
         error_message = {
             "error": "API request failed.",
@@ -101,8 +102,8 @@ class UMLSAPIBase:
             "message": response.text,
         }
         logger.error(f"API request failed with status code {response.status_code}: {response.text}")
-        return self._format_json(error_message) if self.return_indented else error_message
-
+        # return self._format_json(error_message) if self.return_indented else error_message
+        return error_message
     # def make_request(
     #     self, endpoint: str, params: Optional[Dict[str, str]] = None
     # ) -> Any:

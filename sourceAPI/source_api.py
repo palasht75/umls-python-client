@@ -2,7 +2,7 @@ import logging
 import os
 import json
 import requests
-
+from rdf.json_to_rdf import convert_to_rdf
 from baseAPI.umls_api_base import UMLSAPIBase
 from sourceAPI.relationship_labels import RELATION_LABELS
 
@@ -19,13 +19,31 @@ logger = logging.getLogger()
 class SourceAPI(UMLSAPIBase):
     """Class for handling source-asserted UMLS API requests."""
 
-    def get_source_concept(self, source: str, id: str):
+    def get_source_concept(self, source: str, id: str, return_indented = True, format="json"):
         """Retrieve information about a known source concept or descriptor."""
+
+        if format not in ["json","rdf"]:        
+            logger.error("Invalid output format selected. Available types are json, rdf")
+            return ""
         url = f"{self.base_url}/content/{self.version}/source/{source}/{id}"
         params = {"apiKey": self.api_key}
         response = requests.get(url, params=params)
         logger.info(f"Fetching source concept: {source}/{id}")
-        return self._handle_response(response)
+
+        if format == "json":
+            if return_indented:
+                return json.dumps(self._handle_response(response), indent=4)
+            else:
+                # return convert_to_rdf(json_data=self._handle_response(response))
+                return self._handle_response(response)
+        elif format == "rdf":
+            try:
+                return convert_to_rdf(json_data=self._handle_response(response))
+            except Exception as e:
+                logger.error(f"An error occurred while converting to RDF: {e}, Falling back to JSON")
+                return json.dumps(self._handle_response(response), indent=4)
+
+
 
     def get_source_atoms(
         self,
@@ -38,8 +56,14 @@ class SourceAPI(UMLSAPIBase):
         include_suppressible=False,
         page_number=1,
         page_size=25,
+        return_indented = True,
+        format= "json"
     ):
         """Retrieve atoms for a known source-asserted identifier with optional filters."""
+
+        if format not in ["json","rdf"]:        
+            logger.error("Invalid output format selected. Available types are json, rdf")
+            return ""
 
         url = f"{self.base_url}/content/{self.version}/source/{source}/{id}/atoms"
 
@@ -65,44 +89,99 @@ class SourceAPI(UMLSAPIBase):
         # Make the request
         response = requests.get(url, params=params)
         logger.info(f"Fetching source atoms for: {source}/{id}")
-        return self._handle_response(response)
+        # convert_to_rdf(json_data=self._handle_response(response))
+        if format == "json":
+            if return_indented:
+                return json.dumps(self._handle_response(response), indent=4)
+            else:
+                # return convert_to_rdf(json_data=self._handle_response(response))
+                return self._handle_response(response)
+        elif format == "rdf":
+            try:
+                return convert_to_rdf(json_data=self._handle_response(response))
+            except Exception as e:
+                logger.error(f"An error occurred while converting to RDF: {e}, Falling back to JSON")
+                return json.dumps(self._handle_response(response), indent=4)
+        # if return_indented:
+        #     return json.dumps(self._handle_response(response), indent=4)
+        # else:
+        #     return self._handle_response(response)
+        
 
-    def get_source_parents(self, source, id):
+    def get_source_parents(self, source, id,return_indented = True, format="json"):
         """Retrieve immediate parents of a known source-asserted identifier."""
+        if format not in ["json","rdf"]:        
+            logger.error("Invalid output format selected. Available types are json, rdf")
+            return ""
+
         url = f"{self.base_url}/content/{self.version}/source/{source}/{id}/parents"
         params = {"apiKey": self.api_key}
         response = requests.get(url, params=params)
-        return self._handle_response(response)
+        if format == "json":
+            if return_indented:
+                return json.dumps(self._handle_response(response), indent=4)
+            else:
+                return self._handle_response(response)
+        elif format == "rdf":
+            try:
+                return convert_to_rdf(json_data=self._handle_response(response))
+            except Exception as e:
+                logger.error(f"An error occurred while converting to RDF: {e}, Falling back to JSON")
+                return json.dumps(self._handle_response(response), indent=4)
 
-    def get_source_children(self, source, id):
+
+#"udf conversion added till above code"
+
+    def get_source_children(self, source, id,return_indented = True):
         """Retrieve immediate children of a known source-asserted identifier."""
         url = f"{self.base_url}/content/{self.version}/source/{source}/{id}/children"
         params = {"apiKey": self.api_key}
         response = requests.get(url, params=params)
-        return self._handle_response(response)
-
-    def get_source_ancestors(self, source, id):
+        if return_indented:
+            return json.dumps(self._handle_response(response), indent=4)
+        else:
+            return self._handle_response(response)
+    def get_source_ancestors(self, source, id,return_indented = True):
         """Retrieve all ancestors of a known source-asserted identifier."""
         url = f"{self.base_url}/content/{self.version}/source/{source}/{id}/ancestors"
         params = {"apiKey": self.api_key}
         response = requests.get(url, params=params)
         logger.info(f"Fetching ancestors for: {source}/{id}")
-        return self._handle_response(response)
-
-    def get_source_descendants(self, source, id):
+        if return_indented:
+            return json.dumps(self._handle_response(response), indent=4)
+        else:
+            return self._handle_response(response)
+    def get_source_descendants(self, source, id,return_indented = True):
         """Retrieve all descendants of a known source-asserted identifier."""
         url = f"{self.base_url}/content/{self.version}/source/{source}/{id}/descendants"
         params = {"apiKey": self.api_key}
         response = requests.get(url, params=params)
         logger.info(f"Fetching descendants for: {source}/{id}")
-        return self._handle_response(response)
-
-    def get_source_attributes(self, source, id):
+        if return_indented:
+            return json.dumps(self._handle_response(response), indent=4)
+        else:
+            return self._handle_response(response)
+    def get_source_attributes(self, source, id,return_indented = True):
         """Retrieve information about source-asserted attributes."""
         url = f"{self.base_url}/content/{self.version}/source/{source}/{id}/attributes"
         params = {"apiKey": self.api_key}
         response = requests.get(url, params=params)
-        return self._handle_response(response)
+        if return_indented:
+            return json.dumps(self._handle_response(response), indent=4)
+        else:
+            return self._handle_response(response)
+        
+
+    def get_relations(self, relations_url,return_indented = True):
+        """Make a second request to the relations endpoint and retrieve related concepts."""
+        params = {"apiKey": self.api_key}
+        response = requests.get(relations_url, params=params)
+        logger.info(f"Fetching relations from URL: {relations_url}")
+        if return_indented:
+            return json.dumps(self._handle_response(response), indent=4)
+        else:
+            return self._handle_response(response)
+    
 
     def get_concept_pathways(self, source, id, max_depth=2, return_indented=True):
         """
@@ -171,12 +250,7 @@ class SourceAPI(UMLSAPIBase):
         else:
             pathways
 
-    def get_relations(self, relations_url):
-        """Make a second request to the relations endpoint and retrieve related concepts."""
-        params = {"apiKey": self.api_key}
-        response = requests.get(relations_url, params=params)
-        logger.info(f"Fetching relations from URL: {relations_url}")
-        return self._handle_response(response)
+
 
     def get_related_concepts_by_relation_type(self, source, id, relation_type, return_indented=True):
         """Retrieve related concepts based on the specified relationship type."""
@@ -389,6 +463,7 @@ class SourceAPI(UMLSAPIBase):
         include_suppressible=False,
         page_number=1,
         page_size=25,
+        return_indented = True
     ):
         """Retrieve relationships for a known source-asserted identifier with optional parameters."""
 
@@ -410,7 +485,11 @@ class SourceAPI(UMLSAPIBase):
 
         response = requests.get(url, params=params)
         logger.info(f"Fetching relations for concept: {source}/{id}")
-        return self._handle_response(response)
+        # return self._handle_response(response)
+        if return_indented:
+            return json.dumps(self._handle_response(response), indent=4)
+        else:
+            return self._handle_response(response)
 
     # Custom recursive method with logging
     def get_full_hierarchy_recursive(self, source, id, depth=0, return_indented = True):
