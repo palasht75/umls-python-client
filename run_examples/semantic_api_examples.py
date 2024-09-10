@@ -1,6 +1,7 @@
 import logging
 import os
-from semanticNetworkAPI.semantic_network_api import SemanticNetworkAPI 
+
+from semanticNetworkAPI.semantic_network_api import SemanticNetworkAPI
 
 # Configure logging
 logging.basicConfig(
