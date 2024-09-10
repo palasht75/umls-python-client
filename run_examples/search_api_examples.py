@@ -1,6 +1,6 @@
 import logging
 import os
-
+from umlsclient import UMLSClient
 from searchAPI.search_api import SearchAPI
 
 # Configure logging
@@ -21,7 +21,7 @@ if __name__ == "__main__":
         exit(1)
 
     # Initialize the SearchAPI class with your API key
-    search_api = SearchAPI(api_key)
+    search_api = UMLSClient(api_key=api_key).searchAPI  
 
     #############################
     # Perform a Basic Search
@@ -94,6 +94,7 @@ if __name__ == "__main__":
         return_id_type="concept",  # Return CUIs
         page_number=1,  # Start from the first page
         page_size=10,  # Limit to 10 results per page
+        format="rdf"
     )
     logger.info(
         f"Search Results for 'insulin' including obsolete terms: {search_results_obsolete}"

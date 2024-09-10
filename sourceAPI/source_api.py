@@ -1,14 +1,10 @@
 import json
 import logging
 import os
-from typing import Any, Dict, Union
-
+from typing import Any, Dict, Union, Optional
 import requests
-
 from baseAPI.umls_api_base import UMLSAPIBase
-from rdf.json_to_rdf import convert_to_rdf
-from sourceAPI.relationship_labels import RELATION_LABELS
-from sourceAPI.utils import handle_response_with_format
+from utils.utils import handle_response_with_format
 
 # print("Api-key --> ", os.getenv("API_KEY"))
 API_KEY = os.getenv("API_KEY")
@@ -23,9 +19,7 @@ logger = logging.getLogger()
 class SourceAPI(UMLSAPIBase):
     """Class for handling source-asserted UMLS API requests."""
 
-    def get_source_concept(
-        self, source: str, id: str, return_indented: bool = True, format: str = "json"
-    ) -> Union[str, Dict[str, Any]]:
+    def get_source_concept(self, source: str, id: str, return_indented: bool = True, format: str = "json") -> Union[str, Dict[str, Any]]:
         # Validate the output format
         if format not in ["json", "rdf"]:
             logger.error(
@@ -41,7 +35,6 @@ class SourceAPI(UMLSAPIBase):
             # Make the API request
             logger.info(f"Fetching source concept: {source}/{id}")
             response = requests.get(url, params=params)
-
             # If the status code error handling is already in _handle_response, no need to add it here
             return handle_response_with_format(
                 response=self._handle_response(response),
@@ -63,18 +56,18 @@ class SourceAPI(UMLSAPIBase):
 
     def get_source_atoms(
         self,
-        source,
-        id,
-        sabs=None,
-        ttys=None,
-        language=None,
-        include_obsolete=False,
-        include_suppressible=False,
-        page_number=1,
-        page_size=25,
-        return_indented=True,
-        format="json",
-    ):
+        source: str,
+        id: str,
+        sabs: Optional[str] = None,
+        ttys: Optional[str] = None,
+        language: Optional[str] = None,
+        include_obsolete: bool = False,
+        include_suppressible: bool = False,
+        page_number: int = 1,
+        page_size: int = 25,
+        return_indented: bool = True,
+        format: str = "json"
+    ) -> Union[str, Dict[str, Any]]:
         """Retrieve atoms for a known source-asserted identifier with optional filters."""
 
         if format not in ["json", "rdf"]:
@@ -114,7 +107,7 @@ class SourceAPI(UMLSAPIBase):
             return_indented=return_indented,
         )
 
-    def get_source_parents(self, source, id, return_indented=True, format="json"):
+    def get_source_parents(self, source : str, id : str, return_indented : bool=True, format : str="json") -> Union[str, Dict[str, Any]]:
         """Retrieve immediate parents of a known source-asserted identifier."""
         if format not in ["json", "rdf"]:
             logger.error(
@@ -132,7 +125,7 @@ class SourceAPI(UMLSAPIBase):
             return_indented=return_indented,
         )
 
-    def get_source_children(self, source, id, return_indented=True, format="json"):
+    def get_source_children(self, source : str, id : str, return_indented : bool = True, format : str="json") -> Union[str, Dict[str, Any]]:
         """Retrieve immediate children of a known source-asserted identifier."""
 
         if format not in ["json", "rdf"]:
@@ -151,7 +144,7 @@ class SourceAPI(UMLSAPIBase):
             return_indented=return_indented,
         )
 
-    def get_source_ancestors(self, source, id, return_indented=True, format="json"):
+    def get_source_ancestors(self, source : str, id : str, return_indented : bool = True, format : str ="json") -> Union[str, Dict[str, Any]]:
         """Retrieve all ancestors of a known source-asserted identifier."""
 
         if format not in ["json", "rdf"]:
@@ -171,7 +164,7 @@ class SourceAPI(UMLSAPIBase):
             return_indented=return_indented,
         )
 
-    def get_source_descendants(self, source, id, return_indented=True, format="json"):
+    def get_source_descendants(self, source : str, id : str, return_indented : bool = True, format : str ="json") -> Union[str, Dict[str, Any]]:
         """Retrieve all descendants of a known source-asserted identifier."""
 
         if format not in ["json", "rdf"]:
@@ -191,7 +184,7 @@ class SourceAPI(UMLSAPIBase):
             return_indented=return_indented,
         )
 
-    def get_source_attributes(self, source, id, return_indented=True, format="json"):
+    def get_source_attributes(self, source : str, id : str, return_indented : bool = True, format : str ="json") -> Union[str, Dict[str, Any]]:
         """Retrieve information about source-asserted attributes."""
 
         if format not in ["json", "rdf"]:
@@ -211,17 +204,17 @@ class SourceAPI(UMLSAPIBase):
 
     def get_source_relations(
         self,
-        source,
-        id,
-        include_relation_labels=None,
-        include_additional_labels=None,
-        include_obsolete=False,
-        include_suppressible=False,
-        page_number=1,
-        page_size=25,
-        return_indented=True,
-        format="json",
-    ):
+        source : str,
+        id : str,
+        include_relation_labels : Optional[str]=None,
+        include_additional_labels : Optional[str]=None,
+        include_obsolete: bool =False,
+        include_suppressible : bool =False,
+        page_number : int =1,
+        page_size : int =25,
+        return_indented : bool=True,
+        format : str ="json",
+    ) -> Union[str, Dict[str, Any]]:
         """Retrieve relationships for a known source-asserted identifier with optional parameters."""
 
         url = f"{self.base_url}/content/{self.version}/source/{source}/{id}/relations"
@@ -254,7 +247,7 @@ class SourceAPI(UMLSAPIBase):
             return_indented=return_indented,
         )
 
-    def get_relations_by_url(self, relations_url, return_indented=True, format="json"):
+    def get_relations_by_url(self, relations_url : str, return_indented : bool=True, format : str="json") -> Union[str, Dict[str, Any]]:
         """Make a second request to the relations endpoint and retrieve related concepts."""
 
         if format not in ["json", "rdf"]:
@@ -272,7 +265,7 @@ class SourceAPI(UMLSAPIBase):
             return_indented=return_indented,
         )
 
-    def get_concept_pathways(self, source, id, max_depth=2, return_indented=True):
+    def get_concept_pathways(self, source, id, max_depth=2, return_indented=True) -> Union[str, Dict[str, Any]]:
         """
         Retrieve full parent-child pathways from the root to the concept and its descendants iteratively.
 
@@ -386,7 +379,7 @@ class SourceAPI(UMLSAPIBase):
             {relation_type: related_concepts}
 
     # https://www.nlm.nih.gov/research/umls/knowledge_sources/metathesaurus/release/attribute_names.html
-    def get_concept_attributes(self, source, id):
+    def get_concept_attributes(self, source, id) -> dict:
         """Retrieve specific attributes of a source-asserted concept."""
         attributes_response = self.get_source_attributes(source, id)
         attributes = json.loads(attributes_response).get("result", [])
@@ -644,8 +637,8 @@ class SourceAPI(UMLSAPIBase):
         else:
             return hierarchy
 
-    def print_available_relations(self):
-        """Print available relationship labels."""
-        logger.info("Available relation labels:")
-        for code, description in RELATION_LABELS.items():
-            print(f"{code}: {description}")
+    # def print_available_relations(self):
+    #     """Print available relationship labels."""
+    #     logger.info("Available relation labels:")
+    #     for code, description in RELATION_LABELS.items():
+    #         print(f"{code}: {description}")

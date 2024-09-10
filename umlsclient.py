@@ -18,7 +18,8 @@ class UMLSClient:
     - SearchAPI
     - SourceAPI
     - CUIAPI
-    - (Future) Semantic Network and Crosswalk APIs
+    - Semantic Network
+    - Crosswalk APIs
 
     This class organizes the APIs into namespaces for easy access.
     """
@@ -36,12 +37,10 @@ class UMLSClient:
         self.searchAPI = SearchAPI(api_key, version)
         self.sourceAPI = SourceAPI(api_key, version)
         self.cuiAPI = CUIAPI(api_key, version)
-        self.semanticNetworkAPI = SemanticNetworkAPI(
-            api_key, version
-        )  # Placeholder for future semantic network API
+        self.semanticNetworkAPI = SemanticNetworkAPI(api_key, version)  
         self.crosswalkAPI = None  # Placeholder for future crosswalk API
 
         # Log the successful initialization of UMLSClient
         logger.info(
-            "UMLSClient initialized with SearchAPI, SourceAPI, CUIAPI, and placeholders for future APIs."
+            "UMLSClient initialized with SearchAPI, SourceAPI, CUIAPI, semanticNetworkAPI and crosswalkAPI"
         )

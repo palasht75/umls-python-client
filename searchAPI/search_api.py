@@ -1,6 +1,6 @@
 import logging
 from typing import Any, Dict, Optional
-
+from sourceAPI.utils import handle_response_with_format
 from baseAPI.umls_api_base import UMLSAPIBase
 
 # Configure logging
@@ -41,6 +41,8 @@ class SearchAPI(UMLSAPIBase):
         partial_search: bool = False,
         page_number: int = 1,
         page_size: int = 25,
+        return_indented : bool = True,
+        format : str = "json"
     ) -> Dict[str, Any]:
         """
         Perform a search query on the UMLS Metathesaurus.
@@ -97,4 +99,8 @@ class SearchAPI(UMLSAPIBase):
             return {"error": f"Request failed: {e}"}
 
         # Handle the response
-        return self._handle_response(response)
+        return handle_response_with_format(
+                response=self._handle_response(response),
+                format=format,
+                return_indented=return_indented,
+            )

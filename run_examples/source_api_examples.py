@@ -1,7 +1,7 @@
 import logging
 import os
 import sys
-
+from umlsclient import UMLSClient
 from sourceAPI.source_api import SourceAPI
 
 # Configure logging
@@ -26,7 +26,7 @@ if __name__ == "__main__":
     source_id = "9468002"  # Example concept ID
 
     # Initialize the SourceAPI class with your API key
-    source_api = SourceAPI(api_key, version="current")
+    source_api = UMLSClient(api_key).sourceAPI
 
     #############################
     # Retrieve Source Concept Information
@@ -35,7 +35,7 @@ if __name__ == "__main__":
         "Retrieving source concept information for the specified source and ID:"
     )
     concept_info = source_api.get_source_concept(
-        source, source_id, return_indented=False, format="rdf"
+        source, source_id, return_indented=True
     )
     logger.info(f"Source Concept Information:\n {concept_info}")
     sys.stdout.flush()
@@ -187,13 +187,13 @@ if __name__ == "__main__":
     logger.info(f"Aggregated Children by Attribute:\n {aggregated_children}")
     sys.stdout.flush()
 
-    # WIP
-    # #############################
-    # # Retrieve Full Hierarchy Recursively
-    # #############################
-    # logger.info(
-    #     "Recursively fetching the full hierarchy for the concept (parents and children):"
-    # )
-    # full_hierarchy = source_api.get_full_hierarchy_recursive(source, source_id, depth=1, return_indented=True)
-    # logger.info(f"Full Recursive Hierarchy:{full_hierarchy} ")
-    # sys.stdout.flush()
+
+    #############################
+    # Retrieve Full Hierarchy Recursively
+    #############################
+    logger.info(
+        "Recursively fetching the full hierarchy for the concept (parents and children):"
+    )
+    full_hierarchy = source_api.get_full_hierarchy_recursive(source, source_id, depth=1, return_indented=True, save_to_file=True, file_path="full_hierarchy_output.txt")
+    logger.info(f"Full Recursive Hierarchy:{full_hierarchy} ")
+    sys.stdout.flush()
