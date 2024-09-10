@@ -25,7 +25,7 @@ if __name__ == "__main__":
     source_id = "9468002"  # Example concept ID
 
     # Initialize the SourceAPI class with your API key
-    source_api = SourceAPI(api_key)
+    source_api = SourceAPI(api_key,version="current")
 
     #############################
     # Retrieve Source Concept Information
@@ -33,8 +33,8 @@ if __name__ == "__main__":
     logger.info(
         "Retrieving source concept information for the specified source and ID:"
     )
-    concept_info = source_api.get_source_concept(source, source_id)
-    logger.info(f"Source Concept Information: {concept_info}")
+    concept_info = source_api.get_source_concept(source, source_id, return_indented=False, format="rdf")
+    logger.info(f"Source Concept Information:\n {concept_info}")
 
     #############################
     # Retrieve Atoms for a Source-Asserted Identifier
@@ -52,6 +52,7 @@ if __name__ == "__main__":
         include_suppressible=False,
         page_number=1,
         page_size=10,
+        format="rdf"
     )
     logger.info(f"Atoms Information: {atoms}")
 
@@ -59,7 +60,7 @@ if __name__ == "__main__":
     # Retrieve Immediate Parents for a Source-Asserted Identifier
     #############################
     logger.info("Fetching immediate parent concepts for the specified source and ID:")
-    parents = source_api.get_source_parents(source, source_id)
+    parents = source_api.get_source_parents(source, source_id, format="rdf")
     logger.info(f"Parents Information:\n {parents}")
 
     #############################
