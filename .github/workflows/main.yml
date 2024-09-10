@@ -1,0 +1,41 @@
+name: Code Formatting Check
+
+on:
+  push:
+    branches:
+      - main   # This triggers the action when code is pushed or merged into the 'main' branch
+
+jobs:
+  format:
+    runs-on: ubuntu-latest   # The action runs on the latest Ubuntu environment
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3  # Checkout the code from your repo
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11.9"  # Specify the Python version
+
+      - name: Install isort and black
+        run: |
+          pip install isort black
+
+      - name: Run isort
+        run: |
+          isort .
+
+      - name: Run black
+        run: |
+          black .
+
+      # Commit and push any changes back to the main branch
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add .
+          git diff-index --quiet HEAD || git commit -m "Auto-apply isort and black formatting"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GitHub token to authenticate the push
