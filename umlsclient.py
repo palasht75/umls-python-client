@@ -2,8 +2,8 @@ import logging
 
 from cuiAPI.cui_api import CUIAPI
 from searchAPI.search_api import SearchAPI
-from sourceAPI.source_api import SourceAPI
 from semanticNetworkAPI.semantic_network_api import SemanticNetworkAPI
+from sourceAPI.source_api import SourceAPI
 
 # Configure logging
 logging.basicConfig(
@@ -36,7 +36,9 @@ class UMLSClient:
         self.searchAPI = SearchAPI(api_key, version)
         self.sourceAPI = SourceAPI(api_key, version)
         self.cuiAPI = CUIAPI(api_key, version)
-        self.semanticNetworkAPI = SemanticNetworkAPI(api_key, version)  # Placeholder for future semantic network API
+        self.semanticNetworkAPI = SemanticNetworkAPI(
+            api_key, version
+        )  # Placeholder for future semantic network API
         self.crosswalkAPI = None  # Placeholder for future crosswalk API
 
         # Log the successful initialization of UMLSClient

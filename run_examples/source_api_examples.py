@@ -25,7 +25,7 @@ if __name__ == "__main__":
     source_id = "9468002"  # Example concept ID
 
     # Initialize the SourceAPI class with your API key
-    source_api = SourceAPI(api_key,version="current")
+    source_api = SourceAPI(api_key, version="current")
 
     #############################
     # Retrieve Source Concept Information
@@ -33,7 +33,9 @@ if __name__ == "__main__":
     logger.info(
         "Retrieving source concept information for the specified source and ID:"
     )
-    concept_info = source_api.get_source_concept(source, source_id, return_indented=False, format="rdf")
+    concept_info = source_api.get_source_concept(
+        source, source_id, return_indented=False, format="rdf"
+    )
     logger.info(f"Source Concept Information:\n {concept_info}")
 
     #############################
@@ -52,7 +54,7 @@ if __name__ == "__main__":
         include_suppressible=False,
         page_number=1,
         page_size=10,
-        format="rdf"
+        format="rdf",
     )
     logger.info(f"Atoms Information: {atoms}")
 
@@ -91,7 +93,7 @@ if __name__ == "__main__":
     attributes = source_api.get_source_attributes(source, source_id)
     logger.info(f"Attributes Information:\n {attributes}")
 
-        #############################
+    #############################
     # Fetch Source Relations with Custom Parameters
     #############################
     logger.info(
@@ -116,13 +118,16 @@ if __name__ == "__main__":
     # )
     # full_hierarchy = source_api.get_full_hierarchy_recursive(source, source_id, depth=1, return_indented=True)
     # logger.info(f"Full Recursive Hierarchy:\n {full_hierarchy} \n")
-    
 
     #############################
     # Retrieve Family Tree (Parent-Child Relationships)
     #############################
-    logger.info("Fetching family tree (parents and children) with a maximum depth of 3:")
-    family_tree = source_api.get_family_tree(source, source_id, max_depth=3, return_indented=True)
+    logger.info(
+        "Fetching family tree (parents and children) with a maximum depth of 3:"
+    )
+    family_tree = source_api.get_family_tree(
+        source, source_id, max_depth=3, return_indented=True
+    )
     logger.info(f"Family Tree:\n {family_tree}")
 
     #############################
@@ -131,7 +136,9 @@ if __name__ == "__main__":
     logger.info(
         "Fetching parent-child pathways for the concept with a specified depth:"
     )
-    pathways = source_api.get_concept_pathways(source, source_id, max_depth=0, return_indented=True)
+    pathways = source_api.get_concept_pathways(
+        source, source_id, max_depth=0, return_indented=True
+    )
     logger.info(f"Concept Pathways:\n {pathways}")
 
     #############################
@@ -168,11 +175,9 @@ if __name__ == "__main__":
     logger.info(
         "Aggregating children of the concept by a specific attribute (replace with actual attribute):"
     )
-    #https://www.nlm.nih.gov/research/umls/knowledge_sources/metathesaurus/release/attribute_names.html
+    # https://www.nlm.nih.gov/research/umls/knowledge_sources/metathesaurus/release/attribute_names.html
 
     aggregated_children = source_api.aggregate_children_by_attribute(
         source, source_id, "CTV3ID", return_indented=True
     )
     logger.info(f"Aggregated Children by Attribute:\n {aggregated_children}")
-
-
