@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+
 from umlsclient import UMLSClient
 
 # Configure logging
@@ -116,6 +117,16 @@ if __name__ == "__main__":
     )
     logger.info(f"Source Relations:\n {relations}")
     sys.stdout.flush()
+    logger.info(f"Source Relations: {relations}")
+
+    # #############################
+    # # Retrieve Full Hierarchy Recursively
+    # #############################
+    # logger.info(
+    #     "Recursively fetching the full hierarchy for the concept (parents and children):"
+    # )
+    # full_hierarchy = source_api.get_full_hierarchy_recursive(source, source_id, depth=1, return_indented=True)
+    # logger.info(f"Full Recursive Hierarchy:\n {full_hierarchy} \n")
 
     #############################
     # Retrieve Family Tree (Parent-Child Relationships)
@@ -124,7 +135,7 @@ if __name__ == "__main__":
         "Fetching family tree (parents and children) with a maximum depth of 3:"
     )
     family_tree = source_api.get_family_tree(
-        source, source_id, max_depth=3, return_indented=False
+        source, source_id, max_depth=3, return_indented=True
     )
     logger.info(f"Family Tree:\n {family_tree}")
     sys.stdout.flush()
@@ -186,13 +197,19 @@ if __name__ == "__main__":
     logger.info(f"Aggregated Children by Attribute:\n {aggregated_children}")
     sys.stdout.flush()
 
-
     #############################
     # Retrieve Full Hierarchy Recursively
     #############################
     logger.info(
         "Recursively fetching the full hierarchy for the concept (parents and children):"
     )
-    full_hierarchy = source_api.get_full_hierarchy_recursive(source, source_id, depth=1, return_indented=True, save_to_file=True, file_path="full_hierarchy_output.txt")
+    full_hierarchy = source_api.get_full_hierarchy_recursive(
+        source,
+        source_id,
+        depth=1,
+        return_indented=True,
+        save_to_file=True,
+        file_path="full_hierarchy_output.txt",
+    )
     logger.info(f"Full Recursive Hierarchy:{full_hierarchy} ")
     sys.stdout.flush()

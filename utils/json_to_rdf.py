@@ -1,7 +1,11 @@
-from rdflib import Graph, Literal, Namespace, URIRef
 from typing import Dict
 
-def convert_to_rdf(json_data: Dict, namespace_url: str = "https://uts-ws.nlm.nih.gov/rest/content/#") -> str:
+from rdflib import Graph, Literal, Namespace, URIRef
+
+
+def convert_to_rdf(
+    json_data: Dict, namespace_url: str = "https://uts-ws.nlm.nih.gov/rest/content/#"
+) -> str:
     """
     Convert the UMLS JSON data to RDF format dynamically, handling both lists and dictionaries in the 'result' field.
 
@@ -59,7 +63,6 @@ def add_triples_from_dict(g: Graph, data: Dict, UMLS: Namespace):
         subject_uri = URIRef(data.get("uri", f"{UMLS}unknown_concept"))
     else:
         subject_uri = URIRef(data.get("ui", f"{UMLS}unknown_concept"))
-    
 
     # Define a list of key fields that are common across multiple UMLS APIs
     common_fields = [

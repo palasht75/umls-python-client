@@ -4,6 +4,7 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+
 def save_output_to_file(response: Any, file_path: str) -> None:
     """
     Save the JSON response to a file with proper error handling.

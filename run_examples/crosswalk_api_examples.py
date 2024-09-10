@@ -1,7 +1,7 @@
 import logging
 import os
-from umlsclient import UMLSClient
 
+from umlsclient import UMLSClient
 
 # Configure logging
 logging.basicConfig(
@@ -25,14 +25,14 @@ if __name__ == "__main__":
     crosswalk_api = UMLSClient(api_key).crosswalkAPI
     # Retrieve crosswalk data for a source and code
     crosswalk_data = crosswalk_api.get_crosswalk(
-        source="HPO", 
-        id="HP:0001947", 
-        target_source="SNOMEDCT_US", 
-        include_obsolete=False, 
-        page_number=1, 
-        page_size=10, 
-        return_indented=True, 
-        format="rdf"
+        source="HPO",
+        id="HP:0001947",
+        target_source="SNOMEDCT_US",
+        include_obsolete=False,
+        page_number=1,
+        page_size=10,
+        return_indented=True,
+        format="rdf",
     )
 
     print(crosswalk_data)

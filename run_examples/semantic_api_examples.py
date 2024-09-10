@@ -1,5 +1,6 @@
 import logging
 import os
+
 from umlsclient import UMLSClient
 
 # Configure logging
@@ -30,7 +31,9 @@ if __name__ == "__main__":
     logger.info("Fetching semantic type information for TUI 'T109':")
     tui = "T109"  # TUI for 'Anatomical Structure'
     file_name = f"semantic_network_{tui}.txt"
-    semantic_type_info = semantic_network_api.get_semantic_type(tui, save_to_file=True, file_path=os.path.join(PATH,file_name))
+    semantic_type_info = semantic_network_api.get_semantic_type(
+        tui, save_to_file=True, file_path=os.path.join(PATH, file_name)
+    )
     logger.info(f"Semantic Type Information for TUI {tui}: {semantic_type_info}")
     logger.info(f"Semantic Type Information for TUI {tui}: {semantic_type_info}")
 
