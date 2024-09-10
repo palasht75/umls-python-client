@@ -14,5 +14,5 @@ RELATION_LABELS = {
     "RU": "Related, unspecified",
     "SY": "Source asserted synonymy",
     "XR": "Not related, no mapping",
-    "NULL": "Empty relationship"
+    "NULL": "Empty relationship",
 }

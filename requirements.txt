@@ -1,0 +1,4 @@
+isort
+black
+#https://www.nlm.nih.gov/research/umls/archive/archive_home.html
+rdflib

@@ -1,25 +1,19 @@
-import requests
 import logging
-from baseAPI.umls_api_base import UMLSAPIBase
-# from sourceAPI.relationship_labels import RELATION_LABELS
-
-# from relationship_labels import RELATION_LABELS
 import os
 
-# print("Api-key --> ", os.getenv("API_KEY"))
+import requests
+
+from baseAPI.umls_api_base import UMLSAPIBase
+
 API_KEY = os.getenv("API_KEY")
 
-#TODO: Enable Documentation             -- done
-#TODO: Logging must be enabled          -- done
-#TODO: Replicate everything from source
-
 logging.basicConfig(
-    level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger()
 
+
 class CUIAPI(UMLSAPIBase):
-    # """Class for handling CUI-based UMLS API requests.""" -- remove?
     """
     The CUIAPI class is designed to interact with the UMLS REST API for Concept Unique Identifier (CUI) data retrieval.
     This class provides methods to fetch detailed information, atoms, definitions, and relations related to a given CUI.
@@ -37,23 +31,21 @@ class CUIAPI(UMLSAPIBase):
     """
 
     def get_cui_info(self, cui):
-        # """Retrieve CUI information."""
         """
         Fetches detailed information about the specified CUI from the UMLS Metathesaurus.
         - Parameters:
             - cui (str): The Concept Unique Identifier (CUI) to query.
-        - Returns: 
+        - Returns:
             - A dictionary containing the detailed information about the CUI.
         """
-        
+
         url = f"{self.base_url}/content/{self.version}/CUI/{cui}"
-        params = {'apiKey': self.api_key}
+        params = {"apiKey": self.api_key}
         response = requests.get(url, params=params)
         logger.info(f"Fetching CUI concept: {cui}")
         return self._handle_response(response)
 
     def get_atoms(self, cui):
-        # """Retrieve atoms for a given CUI."""
         """
         Fetches atoms associated with the specified CUI.
         - Parameters:
@@ -63,13 +55,12 @@ class CUIAPI(UMLSAPIBase):
         """
 
         url = f"{self.base_url}/content/{self.version}/CUI/{cui}/atoms"
-        params = {'apiKey': self.api_key}
+        params = {"apiKey": self.api_key}
         response = requests.get(url, params=params)
         logger.info(f"Fetching CUI atoms for: {cui}")
         return self._handle_response(response)
 
     def get_definitions(self, cui):
-        # """Retrieve definitions for a given CUI."""
         """
         Fetches definitions associated with the specified CUI.
         - Parameters:
@@ -79,7 +70,7 @@ class CUIAPI(UMLSAPIBase):
         """
 
         url = f"{self.base_url}/content/{self.version}/CUI/{cui}/definitions"
-        params = {'apiKey': self.api_key}
+        params = {"apiKey": self.api_key}
         response = requests.get(url, params=params)
         logger.info(f"Fetching CUI definitions for: {cui}")
         return self._handle_response(response)
@@ -96,7 +87,7 @@ class CUIAPI(UMLSAPIBase):
         """
 
         url = f"{self.base_url}/content/{self.version}/CUI/{cui}/relations"
-        params = {'apiKey': self.api_key}
+        params = {"apiKey": self.api_key}
         response = requests.get(url, params=params)
         logger.info(f"Fetching CUI relations for: {cui}")
         return self._handle_response(response)
