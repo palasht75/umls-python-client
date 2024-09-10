@@ -1,2 +1,6 @@
-#removed cache files
+#cache files
 __pycache__/
+
+#output files
+output/
+run_examples/*.txt

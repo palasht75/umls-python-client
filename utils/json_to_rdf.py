@@ -1,15 +1,13 @@
 from rdflib import Graph, Literal, Namespace, URIRef
+from typing import Dict
 
-
-def convert_to_rdf(
-    json_data: dict, namespace_url: str = "http://example.org/umls#"
-) -> str:
+def convert_to_rdf(json_data: Dict, namespace_url: str = "https://uts-ws.nlm.nih.gov/rest/content/#") -> str:
     """
     Convert the UMLS JSON data to RDF format dynamically, handling both lists and dictionaries in the 'result' field.
 
     Args:
         json_data (dict): The JSON response from any UMLS API.
-        namespace_url (str): The base namespace URL for RDF generation. Defaults to "http://example.org/umls#".
+        namespace_url (str): The base namespace URL for RDF generation. Defaults to "https://uts-ws.nlm.nih.gov/rest/content/#".
 
     Returns:
         str: The RDF data in Turtle format.
@@ -24,10 +22,17 @@ def convert_to_rdf(
     result_data = json_data.get("result", [])
 
     if isinstance(result_data, dict):
-        # Handle single dictionary case
-        add_triples_from_dict(g, result_data, UMLS)
+        # Handle the case where 'result' is a dictionary with nested 'results' field (list)
+        results_list = result_data.get("results", [])
+        if isinstance(results_list, list):
+            for item in results_list:
+                if isinstance(item, dict):
+                    add_triples_from_dict(g, item, UMLS)
+        else:
+            # If 'results' is not a list, treat it as a single concept dictionary
+            add_triples_from_dict(g, result_data, UMLS)
     elif isinstance(result_data, list):
-        # Handle list of results
+        # Handle the case where 'result' is directly a list
         for item in result_data:
             if isinstance(item, dict):
                 add_triples_from_dict(g, item, UMLS)
@@ -40,7 +45,7 @@ def convert_to_rdf(
     return rdf_data
 
 
-def add_triples_from_dict(g: Graph, data: dict, UMLS: Namespace):
+def add_triples_from_dict(g: Graph, data: Dict, UMLS: Namespace):
     """
     Helper function to add RDF triples from a dictionary of data.
 
@@ -50,7 +55,11 @@ def add_triples_from_dict(g: Graph, data: dict, UMLS: Namespace):
         UMLS (Namespace): The RDF namespace.
     """
     # Use the 'ui' or 'concept' field as the subject URI, fallback to a generic URI if not available
-    subject_uri = URIRef(data.get("concept", f"{UMLS}unknown_concept"))
+    if data.get("uri") != None:
+        subject_uri = URIRef(data.get("uri", f"{UMLS}unknown_concept"))
+    else:
+        subject_uri = URIRef(data.get("ui", f"{UMLS}unknown_concept"))
+    
 
     # Define a list of key fields that are common across multiple UMLS APIs
     common_fields = [
@@ -69,6 +78,8 @@ def add_triples_from_dict(g: Graph, data: dict, UMLS: Namespace):
         "relations",
         "defaultPreferredAtom",
         "definitions",
+        "uri",
+        "rootSource",
     ]
 
     # Iterate over common fields and dynamically add RDF triples if the field exists and is not "NONE"
