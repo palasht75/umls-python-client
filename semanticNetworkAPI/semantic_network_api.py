@@ -1,9 +1,13 @@
-import requests
 import logging
+
+import requests
+
 from baseAPI.umls_api_base import UMLSAPIBase
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger()
 
 
@@ -30,8 +34,8 @@ class SemanticNetworkAPI(UMLSAPIBase):
         """
         # Construct the URL for the semantic network endpoint
         url = f"{self.base_url}/semantic-network/{self.version}/TUI/{tui}"
-        params = {'apiKey': self.api_key}
-        
+        params = {"apiKey": self.api_key}
+
         # Log the API request
         logger.info(f"Fetching semantic type for TUI: {tui}")
 

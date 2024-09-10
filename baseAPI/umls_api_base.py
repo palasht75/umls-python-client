@@ -1,6 +1,7 @@
-import logging
 import json
-from typing import Any, Dict, Optional
+import logging
+from typing import Any, Dict
+
 import requests
 
 # Configure logging
@@ -8,6 +9,7 @@ logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
 
 class UMLSAPIBase:
     """
@@ -18,6 +20,7 @@ class UMLSAPIBase:
         base_url (str): The base URL for the UMLS API.
         return_indented (bool): Whether or not to return indented JSON by default.
     """
+
     def __init__(self, api_key: str, version: str = "current"):
         """
         Initialize the UMLSAPIBase class with the API key, version, and return behavior.
@@ -101,9 +104,12 @@ class UMLSAPIBase:
             "status_code": response.status_code,
             "message": response.text,
         }
-        logger.error(f"API request failed with status code {response.status_code}: {response.text}")
+        logger.error(
+            f"API request failed with status code {response.status_code}: {response.text}"
+        )
         # return self._format_json(error_message) if self.return_indented else error_message
         return error_message
+
     # def make_request(
     #     self, endpoint: str, params: Optional[Dict[str, str]] = None
     # ) -> Any:

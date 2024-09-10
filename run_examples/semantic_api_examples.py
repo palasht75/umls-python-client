@@ -1,7 +1,8 @@
 import logging
 import os
 
-from semanticNetworkAPI.semantic_network_api import SemanticNetworkAPI  # Assuming this is where your SemanticNetworkAPI class is located
+from semanticNetworkAPI.semantic_network_api import \
+    SemanticNetworkAPI  # Assuming this is where your SemanticNetworkAPI class is located
 
 # Configure logging
 logging.basicConfig(
