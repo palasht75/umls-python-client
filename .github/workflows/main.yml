@@ -15,7 +15,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.x"  # Specify the Python version
+          python-version: "3.11.9"  # Specify the Python version
 
       - name: Install isort and black
         run: |
@@ -29,13 +29,13 @@ jobs:
         run: |
           black .
 
-      # # If you want to commit the changes automatically back to the repo:
-      # - name: Commit and push changes
-      #   run: |
-      #     git config --global user.name "GitHub Actions"
-      #     git config --global user.email "actions@github.com"
-      #     git add .
-      #     git commit -m "Apply isort and black formatting"
-      #     git push
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # This token is automatically provided by GitHub Actions
+      # Commit and push any changes back to the main branch
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add .
+          git diff-index --quiet HEAD || git commit -m "Auto-apply isort and black formatting"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GitHub token to authenticate the push
