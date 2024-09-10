@@ -1,15 +1,17 @@
 import logging
 
 import requests
-from utils.utils import handle_response_with_format
-from utils.save_output import save_output_to_file
+
 from baseAPI.umls_api_base import UMLSAPIBase
+from utils.save_output import save_output_to_file
+from utils.utils import handle_response_with_format
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger()
+
 
 class SemanticNetworkAPI(UMLSAPIBase):
     """
@@ -22,7 +24,14 @@ class SemanticNetworkAPI(UMLSAPIBase):
         version (str): The version of the UMLS release to use (inherited from UMLSAPIBase).
     """
 
-    def get_semantic_type(self, tui: str,save_to_file: bool = False,file_path: str = "semantic_network_results.txt", return_indented : bool = True, **kwargs):
+    def get_semantic_type(
+        self,
+        tui: str,
+        save_to_file: bool = False,
+        file_path: str = "semantic_network_results.txt",
+        return_indented: bool = True,
+        **kwargs,
+    ):
         """
         Retrieve information about a semantic type using its TUI (Type Unique Identifier).
         Args:
@@ -31,7 +40,9 @@ class SemanticNetworkAPI(UMLSAPIBase):
             dict: The semantic type information retrieved from the UMLS API.
         """
         if "format" in kwargs:
-            logger.warning("Format is unavailable for this function, it will be enabled in future.")
+            logger.warning(
+                "Format is unavailable for this function, it will be enabled in future."
+            )
 
         # Construct the URL for the semantic network endpoint
         url = f"{self.base_url}/semantic-network/{self.version}/TUI/{tui}"
@@ -48,10 +59,12 @@ class SemanticNetworkAPI(UMLSAPIBase):
             return {"error": f"Request failed: {e}"}
 
         if save_to_file:
-            save_output_to_file(response=self._handle_response(response), file_path=file_path)
+            save_output_to_file(
+                response=self._handle_response(response), file_path=file_path
+            )
 
         # Handle the response
         return handle_response_with_format(
-                response=self._handle_response(response),
-                return_indented=return_indented,
-            )
+            response=self._handle_response(response),
+            return_indented=return_indented,
+        )

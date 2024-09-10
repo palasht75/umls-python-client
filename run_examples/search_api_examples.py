@@ -1,7 +1,7 @@
 import logging
 import os
-from umlsclient import UMLSClient
 
+from umlsclient import UMLSClient
 
 # Configure logging
 logging.basicConfig(
@@ -23,7 +23,7 @@ if __name__ == "__main__":
         exit(1)
 
     # Initialize the SearchAPI class with your API key
-    search_api = UMLSClient(api_key=api_key).searchAPI  
+    search_api = UMLSClient(api_key=api_key).searchAPI
 
     #############################
     # Perform a Basic Search
@@ -98,7 +98,7 @@ if __name__ == "__main__":
         page_size=10,  # Limit to 10 results per page
         format="rdf",
         save_to_file=True,
-        file_path=os.path.join(PATH, "insulin_search.txt")
+        file_path=os.path.join(PATH, "insulin_search.txt"),
     )
     logger.info(
         f"Search Results for 'insulin' including obsolete terms: {search_results_obsolete}"

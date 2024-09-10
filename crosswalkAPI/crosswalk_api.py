@@ -1,11 +1,16 @@
-import requests
 import logging
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
+import requests
+
 from baseAPI.umls_api_base import UMLSAPIBase
-from utils.utils import handle_response_with_format
 from utils.save_output import save_output_to_file
+from utils.utils import handle_response_with_format
+
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger()
 
 
@@ -20,9 +25,19 @@ class CrosswalkAPI(UMLSAPIBase):
         version (str): The version of the UMLS release to use (inherited from UMLSAPIBase).
     """
 
-    def get_crosswalk(self, source: str, id: str, target_source: Optional[str] = None, 
-                      include_obsolete: bool = False, page_number: int = 1, page_size: int = 25, 
-                      return_indented: bool = True, format: str = "json", save_to_file: bool = False, file_path="crosswalk_results.txt") -> Any:
+    def get_crosswalk(
+        self,
+        source: str,
+        id: str,
+        target_source: Optional[str] = None,
+        include_obsolete: bool = False,
+        page_number: int = 1,
+        page_size: int = 25,
+        return_indented: bool = True,
+        format: str = "json",
+        save_to_file: bool = False,
+        file_path="crosswalk_results.txt",
+    ) -> Any:
         """
         Retrieve crosswalk data between vocabularies using a UMLS source and identifier.
 
@@ -42,7 +57,9 @@ class CrosswalkAPI(UMLSAPIBase):
             Any: The response from the UMLS Crosswalk API in the specified format (JSON or RDF).
         """
         if format not in ["json", "rdf"]:
-            logger.error("Invalid output format selected. Available types are json, rdf")
+            logger.error(
+                "Invalid output format selected. Available types are json, rdf"
+            )
             return ""
 
         # Construct the URL for the crosswalk endpoint
@@ -58,7 +75,9 @@ class CrosswalkAPI(UMLSAPIBase):
         # Filter out any parameters that are None
         params = {k: v for k, v in params.items() if v is not None}
 
-        logger.info(f"Fetching crosswalk data for source: {source}, ID: {id}, target: {target_source}")
+        logger.info(
+            f"Fetching crosswalk data for source: {source}, ID: {id}, target: {target_source}"
+        )
 
         # Make the API request
         try:
@@ -68,11 +87,13 @@ class CrosswalkAPI(UMLSAPIBase):
             return {"error": f"Request failed: {e}"}
 
         if save_to_file:
-            save_output_to_file(response=self._handle_response(response), file_path=file_path)
+            save_output_to_file(
+                response=self._handle_response(response), file_path=file_path
+            )
 
         # Handle the response
         return handle_response_with_format(
-                response=self._handle_response(response),
-                format=format,
-                return_indented=return_indented,
-            )
+            response=self._handle_response(response),
+            format=format,
+            return_indented=return_indented,
+        )

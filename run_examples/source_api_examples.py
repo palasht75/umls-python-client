@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+
 from umlsclient import UMLSClient
 
 # Configure logging
@@ -196,13 +197,19 @@ if __name__ == "__main__":
     logger.info(f"Aggregated Children by Attribute:\n {aggregated_children}")
     sys.stdout.flush()
 
-
     #############################
     # Retrieve Full Hierarchy Recursively
     #############################
     logger.info(
         "Recursively fetching the full hierarchy for the concept (parents and children):"
     )
-    full_hierarchy = source_api.get_full_hierarchy_recursive(source, source_id, depth=1, return_indented=True, save_to_file=True, file_path="full_hierarchy_output.txt")
+    full_hierarchy = source_api.get_full_hierarchy_recursive(
+        source,
+        source_id,
+        depth=1,
+        return_indented=True,
+        save_to_file=True,
+        file_path="full_hierarchy_output.txt",
+    )
     logger.info(f"Full Recursive Hierarchy:{full_hierarchy} ")
     sys.stdout.flush()
