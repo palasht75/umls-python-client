@@ -5,9 +5,9 @@ from typing import Any, Dict, Optional, Union
 
 import requests
 
-from baseAPI.umls_api_base import UMLSAPIBase
-from utils.save_output import save_output_to_file
-from utils.utils import handle_response_with_format
+from umls_python_client.baseAPI.umls_api_base import UMLSAPIBase
+from umls_python_client.utils.save_output import save_output_to_file
+from umls_python_client.utils.utils import handle_response_with_format
 
 # print("Api-key --> ", os.getenv("API_KEY"))
 API_KEY = os.getenv("API_KEY")

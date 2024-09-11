@@ -1,10 +1,10 @@
 import logging
 
-from crosswalkAPI.crosswalk_api import CrosswalkAPI
-from cuiAPI.cui_api import CUIAPI
-from searchAPI.search_api import SearchAPI
-from semanticNetworkAPI.semantic_network_api import SemanticNetworkAPI
-from sourceAPI.source_api import SourceAPI
+from .crosswalkAPI import CrosswalkAPI
+from .cuiAPI import CUIAPI
+from .searchAPI import SearchAPI
+from .semanticNetworkAPI import SemanticNetworkAPI
+from .sourceAPI import SourceAPI
 
 # Configure logging
 logging.basicConfig(
