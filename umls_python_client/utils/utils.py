@@ -1,7 +1,7 @@
 import json
 import logging
 
-from utils.json_to_rdf import convert_to_rdf
+from umls_python_client.utils.json_to_rdf import convert_to_rdf
 
 logger = logging.getLogger(__name__)
 
