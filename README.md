@@ -1,4 +1,4 @@
-# UMLS API Client
+# umls-client
 
 ## Overview
 
