@@ -1,7 +1,7 @@
 import logging
 import os
 
-from umlsclient import UMLSClient
+from umls_client import UMLSClient
 
 # Configure logging
 logging.basicConfig(
