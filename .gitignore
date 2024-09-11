@@ -2,5 +2,5 @@
 __pycache__/
 
 #output files
-output/
-run_examples/*.txt
+/output/
+/run_examples/*.txt
