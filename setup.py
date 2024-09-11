@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="umls-python-client",                          # Name of the package
-    version="1.0",                               # Version of your package
+    version="1.0.1",                               # Version of your package
     author="Palash Thakur",
     author_email="palasht75@gmail.com",
     description="UMLS Client for interacting with UMLS APIs including Search, Source, CUI, Semantic Network, and Crosswalk APIs.",
@@ -13,9 +13,7 @@ setup(
     packages=find_packages(),                     # Automatically find packages
     install_requires=[
         "requests",
-        "rdflib",                                 # If RDF conversion is used
-        "black",                                  # Dev dependencies, you may not include in final package
-        "isort"
+        "rdflib"                                 # If RDF conversion is use
     ],
     classifiers=[
         "Programming Language :: Python :: 3.9",

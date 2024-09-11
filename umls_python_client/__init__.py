@@ -1,1 +1,1 @@
-from .umls_python_client import UMLSClient
+from .umls_client import UMLSClient

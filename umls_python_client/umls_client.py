@@ -1,10 +1,10 @@
 import logging
 
-from .crosswalkAPI import CrosswalkAPI
-from .cuiAPI import CUIAPI
-from .searchAPI import SearchAPI
-from .semanticNetworkAPI import SemanticNetworkAPI
-from .sourceAPI import SourceAPI
+from umls_python_client.crosswalkAPI.crosswalk_api import CrosswalkAPI
+from umls_python_client.cuiAPI.cui_api import CUIAPI
+from umls_python_client.searchAPI.search_api import SearchAPI
+from umls_python_client.semanticNetworkAPI.semantic_network_api import SemanticNetworkAPI
+from umls_python_client.sourceAPI.source_api import SourceAPI
 
 # Configure logging
 logging.basicConfig(

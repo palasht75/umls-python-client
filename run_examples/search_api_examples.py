@@ -1,7 +1,12 @@
 import logging
 import os
+import sys
 
-from umls_client.umls_client import UMLSClient
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+
+from umls_python_client.umls_client import UMLSClient
+
 
 # Configure logging
 logging.basicConfig(
