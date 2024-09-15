@@ -16,6 +16,9 @@ logger = logging.getLogger()
 # Fetch the API key from environment variables
 API_KEY = os.getenv("API_KEY")
 
+#Folder path to save files
+PATH = r"C:\Users\palas\OneDrive\Desktop\umls-apis\umls-python-client\output"
+
 # Main function to demonstrate various functionalities of the SourceAPI
 if __name__ == "__main__":
     # Initialize your UMLS API key from environment or configuration
@@ -38,7 +41,7 @@ if __name__ == "__main__":
         "Retrieving source concept information for the specified source and ID:"
     )
     concept_info = source_api.get_source_concept(
-        source, source_id, return_indented=True
+        source, source_id, return_indented=True, save_to_file=True, file_path=PATH
     )
     logger.info(f"Source Concept Information:\n {concept_info}")
     sys.stdout.flush()
@@ -67,7 +70,7 @@ if __name__ == "__main__":
     # Retrieve Immediate Parents for a Source-Asserted Identifier
     #############################
     logger.info("Fetching immediate parent concepts for the specified source and ID:")
-    parents = source_api.get_source_parents(source, source_id, format="rdf")
+    parents = source_api.get_source_parents(source, source_id, format="rdf", save_to_file=True, file_path=PATH)
     logger.info(f"Parents Information:\n {parents}")
     sys.stdout.flush()
 
@@ -75,7 +78,7 @@ if __name__ == "__main__":
     # Retrieve Immediate Children for a Source-Asserted Identifier
     #############################
     logger.info("Fetching immediate child concepts for the specified source and ID:")
-    children = source_api.get_source_children(source, source_id, format="rdf")
+    children = source_api.get_source_children(source, source_id, format="rdf",save_to_file=True, file_path=PATH)
     logger.info(f"Children Information:\n {children}")
     sys.stdout.flush()
 
@@ -83,7 +86,7 @@ if __name__ == "__main__":
     # Retrieve Ancestors for a Source-Asserted Identifier
     #############################
     logger.info("Fetching ancestors for the specified source and ID:")
-    ancestors = source_api.get_source_ancestors(source, source_id)
+    ancestors = source_api.get_source_ancestors(source, source_id,save_to_file=True, file_path=PATH)
     logger.info(f"Ancestors Information:\n {ancestors}")
     sys.stdout.flush()
 
@@ -91,7 +94,7 @@ if __name__ == "__main__":
     # Retrieve Descendants for a Source-Asserted Identifier
     #############################
     logger.info("Fetching descendants for the specified source and ID:")
-    descendants = source_api.get_source_descendants(source, source_id)
+    descendants = source_api.get_source_descendants(source, source_id,save_to_file=True, file_path=PATH)
     logger.info(f"Descendants Information:\n {descendants}")
     sys.stdout.flush()
 
@@ -99,7 +102,7 @@ if __name__ == "__main__":
     # Retrieve Attributes for a Source-Asserted Identifier
     #############################
     logger.info("Fetching attributes for the specified source and ID:")
-    attributes = source_api.get_source_attributes(source, source_id)
+    attributes = source_api.get_source_attributes(source, source_id,save_to_file=True, file_path=PATH)
     logger.info(f"Attributes Information:\n {attributes}")
     sys.stdout.flush()
 
@@ -117,6 +120,8 @@ if __name__ == "__main__":
         include_suppressible=False,
         page_number=1,
         page_size=10,
+        save_to_file=True,
+        file_path=PATH
     )
     logger.info(f"Source Relations:\n {relations}")
     sys.stdout.flush()
@@ -138,7 +143,7 @@ if __name__ == "__main__":
         "Fetching family tree (parents and children) with a maximum depth of 3:"
     )
     family_tree = source_api.get_family_tree(
-        source, source_id, max_depth=3, return_indented=True
+        source, source_id, max_depth=3, return_indented=True,save_to_file=True, file_path=PATH
     )
     logger.info(f"Family Tree:\n {family_tree}")
     sys.stdout.flush()
@@ -150,7 +155,7 @@ if __name__ == "__main__":
         "Fetching parent-child pathways for the concept with a specified depth:"
     )
     pathways = source_api.get_concept_pathways(
-        source, source_id, max_depth=0, return_indented=True
+        source, source_id, max_depth=0, return_indented=True,save_to_file=True, file_path=PATH
     )
     logger.info(f"Concept Pathways:\n {pathways}")
     sys.stdout.flush()
@@ -163,7 +168,7 @@ if __name__ == "__main__":
         "Fetching related concepts based on the specified relationship type (e.g., broader concepts):"
     )
     related_concepts = source_api.get_related_concepts_by_relation_type(
-        source, source_id, relation_type, return_indented=True
+        source, source_id, relation_type, return_indented=True,save_to_file=True, file_path=PATH
     )
     logger.info(f"Related Concepts (Broader Relationship):\n {related_concepts}")
     sys.stdout.flush()
@@ -173,7 +178,7 @@ if __name__ == "__main__":
     #############################
     logger.info("Comparing two concepts for similarity or differences:")
     comparison = source_api.compare_concepts(
-        source, id1=source_id, id2="9468003", return_indented=True
+        source, id1=source_id, id2="9468003", return_indented=True,save_to_file=True, file_path=PATH
     )  # Example of another concept ID
     logger.info(f"Comparison between concepts:\n {comparison}")
     sys.stdout.flush()
@@ -182,7 +187,7 @@ if __name__ == "__main__":
     # Get Concept Coverage Across Medical Systems
     #############################
     logger.info("Fetching coverage of the concept across multiple medical systems:")
-    coverage = source_api.get_concept_coverage(source, source_id, return_indented=True)
+    coverage = source_api.get_concept_coverage(source, source_id, return_indented=True,save_to_file=True, file_path=PATH)
     logger.info(f"Concept Coverage: {coverage}")
     sys.stdout.flush()
 
@@ -195,7 +200,7 @@ if __name__ == "__main__":
     # https://www.nlm.nih.gov/research/umls/knowledge_sources/metathesaurus/release/attribute_names.html
 
     aggregated_children = source_api.aggregate_children_by_attribute(
-        source, source_id, "CTV3ID", return_indented=True
+        source, source_id, "CTV3ID", return_indented=True,save_to_file=True, file_path=PATH
     )
     logger.info(f"Aggregated Children by Attribute:\n {aggregated_children}")
     sys.stdout.flush()
@@ -212,7 +217,7 @@ if __name__ == "__main__":
         depth=1,
         return_indented=True,
         save_to_file=True,
-        file_path="full_hierarchy_output.txt",
+        file_path=PATH
     )
     logger.info(f"Full Recursive Hierarchy:{full_hierarchy} ")
     sys.stdout.flush()
