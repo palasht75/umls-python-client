@@ -1,5 +1,7 @@
 import logging
 import os
+from typing import Optional, Union, Any, Dict
+
 
 import requests
 
@@ -32,7 +34,13 @@ class CUIAPI(UMLSAPIBase):
         base_url (str): The base URL for UMLS API requests (inherited from UMLSAPIBase).
     """
 
-    def get_cui_info(self, cui):
+    def get_cui_info(
+            self,
+            cui,
+            return_indented: bool = True,
+            save_to_file: bool = False,
+            file_path: str = None,
+        ) -> Union[str, Dict[str, Any]]:
         """
         Fetches detailed information about the specified CUI from the UMLS Metathesaurus.
         - Parameters:
@@ -45,9 +53,38 @@ class CUIAPI(UMLSAPIBase):
         params = {"apiKey": self.api_key}
         response = requests.get(url, params=params)
         logger.info(f"Fetching CUI concept: {cui}")
-        return self._handle_response(response)
 
-    def get_atoms(self, cui):
+        # Save to file if required
+        if save_to_file:
+            if file_path == None:
+                file_path = f"cui_info_{cui}.txt"
+            else:
+                file_path = os.path.join(
+                    file_path, f"cui_info_{cui}.txt"
+                    )
+            save_output_to_file(
+                    response=self._handle_response(response), file_path=file_path
+                )
+
+        return handle_response_with_format(
+                response=self._handle_response(response),
+                return_indented=return_indented,
+            )
+
+    def get_atoms(
+            self, 
+            cui: str, 
+            return_indented: bool = True,
+            sabs: Optional[str] = None,
+            ttys: Optional[str] = None,
+            language: Optional[str] = None,
+            include_obsolete: bool = False,
+            include_suppressible: bool = False,
+            page_number: int = 1,
+            page_size: int = 25,
+            save_to_file: bool = False,
+            file_path: str = None,
+        ) -> Union[str, Dict[str, Any]]:
         """
         Fetches atoms associated with the specified CUI.
         - Parameters:
@@ -55,14 +92,52 @@ class CUIAPI(UMLSAPIBase):
         - Returns:
             - A dictionary containing atoms related to the CUI.
         """
-
+        # --format holdup
         url = f"{self.base_url}/content/{self.version}/CUI/{cui}/atoms"
-        params = {"apiKey": self.api_key}
+        params = {
+            "apiKey": self.api_key,
+            "sabs": sabs,
+            "ttys": ttys,
+            "language": language,
+            "includeObsolete": str(include_obsolete).lower(),
+            "includeSuppressible": str(include_suppressible).lower(),
+            "pageNumber": page_number,
+            "pageSize": page_size,
+        }
+
+        # Filter out any None values from params
+        params = {k: v for k, v in params.items() if v is not None}
+
         response = requests.get(url, params=params)
         logger.info(f"Fetching CUI atoms for: {cui}")
-        return self._handle_response(response)
 
-    def get_definitions(self, cui):
+        # Save to file if required
+        if save_to_file:
+            if file_path == None:
+                file_path = f"cui_atoms_{cui}.txt"
+            else:
+                file_path = os.path.join(
+                    file_path, f"cui_atoms_{cui}.txt"
+                    )
+            save_output_to_file(
+                    response=self._handle_response(response), file_path=file_path
+                )
+
+        return handle_response_with_format(
+            response=self._handle_response(response),
+            return_indented=return_indented,
+        )
+
+    def get_definitions(
+            self, 
+            cui: str, 
+            return_indented: bool = True,
+            sabs: Optional[str] = None,
+            page_number: int = 1,
+            page_size: int = 25,
+            save_to_file: bool = False,
+            file_path: str = None,
+        ) -> Union[str, Dict[str, Any]]:
         """
         Fetches definitions associated with the specified CUI.
         - Parameters:
@@ -72,14 +147,49 @@ class CUIAPI(UMLSAPIBase):
         """
 
         url = f"{self.base_url}/content/{self.version}/CUI/{cui}/definitions"
-        params = {"apiKey": self.api_key}
+        params = {
+            "apiKey": self.api_key,
+            "sabs": sabs,
+            "pageNumber": page_number,
+            "pageSize": page_size,
+        }
+
+        # Filter out any None values from params
+        params = {k: v for k, v in params.items() if v is not None}
+
         response = requests.get(url, params=params)
         logger.info(f"Fetching CUI definitions for: {cui}")
-        return self._handle_response(response)
 
-    def get_relations(self, cui):
-        # """Retrieve relationships for a given CUI."""
+        # Save to file if required
+        if save_to_file:
+            if file_path == None:
+                file_path = f"cui_definitions_{cui}.txt"
+            else:
+                file_path = os.path.join(
+                    file_path, f"cui_definitions_{cui}.txt"
+                    )
+            save_output_to_file(
+                    response=self._handle_response(response), file_path=file_path
+                )
 
+        return handle_response_with_format(
+                response=self._handle_response(response),
+                return_indented=return_indented,
+            )
+
+    def get_relations(self,
+            cui, 
+            return_indented: bool = True,
+            sabs: Optional[str]= None,
+            include_relation_labels: Optional[str] = None,
+            include_additional_labels: Optional[str] = None,
+            include_obsolete: bool = False,
+            include_suppressible: bool = False,
+            page_number: int = 1,
+            page_size: int = 25,
+            save_to_file: bool = False,
+            file_path: str = None,
+        ) -> Union[str, Dict[str, Any]]:
         """
         Fetches relationships for the specified CUI.
         - Parameters:
@@ -89,90 +199,36 @@ class CUIAPI(UMLSAPIBase):
         """
 
         url = f"{self.base_url}/content/{self.version}/CUI/{cui}/relations"
-        params = {"apiKey": self.api_key}
+        params = {
+            "apiKey": self.api_key,
+            "sabs": sabs,
+            "includeRelationLabels": include_relation_labels,
+            "includeAdditionalRelationLabels": include_additional_labels,
+            "includeObsolete": str(include_obsolete).lower(),
+            "includeSuppressible": str(include_suppressible).lower(),
+            "pageNumber": page_number,
+            "pageSize": page_size,
+        }
+
+        # Filter out any None values from params
+        params = {k: v for k, v in params.items() if v is not None}
+
         response = requests.get(url, params=params)
         logger.info(f"Fetching CUI relations for: {cui}")
-        return self._handle_response(response)
 
+        # Save to file if required
+        if save_to_file:
+            if file_path == None:
+                file_path = f"cui_relations_{cui}.txt"
+            else:
+                file_path = os.path.join(
+                    file_path, f"cui_relations_{cui}.txt"
+                    )
+            save_output_to_file(
+                    response=self._handle_response(response), file_path=file_path
+                )
 
-# class SourceAPI(UMLSAPIBase):
-#     """Class for handling source-asserted UMLS API requests."""
-
-#     def get_source_info(self, source, id):
-#         """Retrieve information about a known source-asserted identifier."""
-#         url = f"{self.base_url}/content/{self.version}/source/{source}/{id}"
-#         params = {'apiKey': self.api_key}
-#         response = requests.get(url, params=params)
-#         return self._handle_response(response)
-
-#     def get_source_atoms(self, source, id):
-#         """Retrieve atoms for a source-asserted identifier."""
-#         url = f"{self.base_url}/content/{self.version}/source/{source}/{id}/atoms"
-#         params = {'apiKey': self.api_key}
-#         response = requests.get(url, params=params)
-#         return self._handle_response(response)
-
-#     # Add more source-related API functions here as needed.
-
-
-# class SemanticNetworkAPI(UMLSAPIBase):
-#     """Class for handling semantic network UMLS API requests."""
-
-#     def get_semantic_type(self, tui):
-#         """Retrieve information for a known Semantic Type identifier (TUI)."""
-#         url = f"{self.base_url}/semantic-network/{self.version}/TUI/{tui}"
-#         params = {'apiKey': self.api_key}
-#         response = requests.get(url, params=params)
-#         return self._handle_response(response)
-
-
-# class CrosswalkAPI(UMLSAPIBase):
-#     """Class for handling crosswalk UMLS API requests."""
-
-#     def get_crosswalk(self, source, id):
-#         """Retrieve all source-asserted identifiers that share a UMLS CUI."""
-#         url = f"{self.base_url}/crosswalk/{self.version}/source/{source}/{id}"
-#         params = {'apiKey': self.api_key}
-#         response = requests.get(url, params=params)
-#         return self._handle_response(response)
-
-
-# Main program to demonstrate usage of the refactored classes
-if __name__ == "__main__":
-    # Replace with your UMLS API key
-    api_key = API_KEY
-    cui = "C0009044"  # Example CUI
-    source = "SNOMEDCT_US"
-    source_id = "9468002"
-
-    # Example usage for CUI-based API
-    cui_api = CUIAPI(api_key)
-    print("CUI Information:")
-    print(cui_api.get_cui_info(cui))
-
-    print("\nAtoms Information:")
-    print(cui_api.get_atoms(cui))
-
-    print("\nDefinitions Information:")
-    print(cui_api.get_definitions(cui))
-
-    print("\nRelations Information:")
-    print(cui_api.get_relations(cui))
-
-    # # Example usage for Source-based API
-    # source_api = SourceAPI(api_key)
-    # print("\nSource Information:")
-    # print(source_api.get_source_info(source, source_id))
-
-    # print("\nSource Atoms Information:")
-    # print(source_api.get_source_atoms(source, source_id))
-
-    # # Example usage for Semantic Network API
-    # semantic_api = SemanticNetworkAPI(api_key)
-    # print("\nSemantic Type Information:")
-    # print(semantic_api.get_semantic_type("T037"))
-
-    # # Example usage for Crosswalk API
-    # crosswalk_api = CrosswalkAPI(api_key)
-    # print("\nCrosswalk Information:")
-    # print(crosswalk_api.get_crosswalk(source, source_id))
+        return handle_response_with_format(
+                response=self._handle_response(response),
+                return_indented=return_indented,
+            )
