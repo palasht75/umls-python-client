@@ -37,7 +37,7 @@ class CrosswalkAPI(UMLSAPIBase):
         return_indented: bool = True,
         format: str = "json",
         save_to_file: bool = False,
-        file_path : str= None,
+        file_path: str = None,
     ) -> Any:
         """
         Retrieve crosswalk data between vocabularies using a UMLS source and identifier.
@@ -91,7 +91,7 @@ class CrosswalkAPI(UMLSAPIBase):
             if file_path == None:
                 file_path = f"crosswalk_{source}.txt"
             else:
-                file_path = os.path.join(file_path,f"crosswalk_{source}.txt")
+                file_path = os.path.join(file_path, f"crosswalk_{source}.txt")
                 print("RAN", file_path)
             save_output_to_file(
                 response=self._handle_response(response), file_path=file_path

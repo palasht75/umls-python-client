@@ -1,6 +1,7 @@
 import logging
-from typing import Any, Dict, Optional
 import os
+from typing import Any, Dict, Optional
+
 from umls_python_client.baseAPI.umls_api_base import UMLSAPIBase
 from umls_python_client.utils.save_output import save_output_to_file
 from umls_python_client.utils.utils import handle_response_with_format
@@ -106,7 +107,7 @@ class SearchAPI(UMLSAPIBase):
             if file_path == None:
                 file_path = f"search_{search_string}.txt"
             else:
-                file_path = os.path.join(file_path,f"search_{search_string}.txt")
+                file_path = os.path.join(file_path, f"search_{search_string}.txt")
             save_output_to_file(
                 response=self._handle_response(response), file_path=file_path
             )
