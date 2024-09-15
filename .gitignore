@@ -10,3 +10,7 @@ build/
 dist/
 
 *.egg*
+
+# setup.py
+
+setup.py
