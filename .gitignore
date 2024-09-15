@@ -4,3 +4,9 @@ __pycache__/
 #output files
 output/
 /run_examples/*.txt
+
+#source modules
+build/
+dist/
+
+*.egg*

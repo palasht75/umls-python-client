@@ -23,9 +23,11 @@ class SourceAPI(UMLSAPIBase):
     """Class for handling source-asserted UMLS API requests."""
 
     def get_source_concept(
-        self, source: str, id: str, return_indented: bool = True, format: str = "json"
+        self, source: str, id: str, return_indented: bool = True, format: str = "json",save_to_file: bool = False,
+        file_path: str = None,
     ) -> Union[str, Dict[str, Any]]:
-        # Validate the output format
+
+
         if format not in ["json", "rdf"]:
             logger.error(
                 "Invalid output format selected. Available types are 'json' and 'rdf'."
@@ -41,6 +43,15 @@ class SourceAPI(UMLSAPIBase):
             logger.info(f"Fetching source concept: {source}/{id}")
             response = requests.get(url, params=params)
             # If the status code error handling is already in _handle_response, no need to add it here
+
+                    # Save to file if required
+            if save_to_file:
+                if file_path == None:
+                    file_path = f"source_concept_{source}_{id}.txt"
+                else:
+                    file_path = os.path.join(file_path,f"source_concept_{source}_{id}.txt")
+                save_output_to_file(response=self._handle_response(response), file_path=file_path)
+                
             return handle_response_with_format(
                 response=self._handle_response(response),
                 format=format,
@@ -72,6 +83,8 @@ class SourceAPI(UMLSAPIBase):
         page_size: int = 25,
         return_indented: bool = True,
         format: str = "json",
+        save_to_file : bool = False,
+        file_path : str = None
     ) -> Union[str, Dict[str, Any]]:
         """Retrieve atoms for a known source-asserted identifier with optional filters."""
 
@@ -106,6 +119,13 @@ class SourceAPI(UMLSAPIBase):
         response = requests.get(url, params=params)
         logger.info(f"Fetching source atoms for: {source}/{id}")
 
+        if save_to_file:
+            if file_path == None:
+                file_path = f"source_atoms_{source}_{id}.txt"
+            else:
+                file_path = os.path.join(file_path,f"source_atoms_{source}_{id}.txt")
+            save_output_to_file(response=self._handle_response(response), file_path=file_path)
+
         return handle_response_with_format(
             response=self._handle_response(response),
             format=format,
@@ -113,7 +133,8 @@ class SourceAPI(UMLSAPIBase):
         )
 
     def get_source_parents(
-        self, source: str, id: str, return_indented: bool = True, format: str = "json"
+        self, source: str, id: str, return_indented: bool = True, format: str = "json", save_to_file : bool = False,
+        file_path : str = None
     ) -> Union[str, Dict[str, Any]]:
         """Retrieve immediate parents of a known source-asserted identifier."""
         if format not in ["json", "rdf"]:
@@ -126,6 +147,13 @@ class SourceAPI(UMLSAPIBase):
         params = {"apiKey": self.api_key}
         response = requests.get(url, params=params)
 
+        if save_to_file:
+            if file_path == None:
+                file_path = f"source_parents_{source}_{id}.txt"
+            else:
+                file_path = os.path.join(file_path,f"source_parents_{source}_{id}.txt")
+            save_output_to_file(response=self._handle_response(response), file_path=file_path)
+
         return handle_response_with_format(
             response=self._handle_response(response),
             format=format,
@@ -133,7 +161,8 @@ class SourceAPI(UMLSAPIBase):
         )
 
     def get_source_children(
-        self, source: str, id: str, return_indented: bool = True, format: str = "json"
+        self, source: str, id: str, return_indented: bool = True, format: str = "json", save_to_file : bool = False,
+        file_path : str = None
     ) -> Union[str, Dict[str, Any]]:
         """Retrieve immediate children of a known source-asserted identifier."""
 
@@ -147,6 +176,14 @@ class SourceAPI(UMLSAPIBase):
         params = {"apiKey": self.api_key}
         response = requests.get(url, params=params)
 
+
+        if save_to_file:
+            if file_path == None:
+                file_path = f"source_children_{source}_{id}.txt"
+            else:
+                file_path = os.path.join(file_path,f"source_children_{source}_{id}.txt")
+            save_output_to_file(response=self._handle_response(response), file_path=file_path)
+
         return handle_response_with_format(
             response=self._handle_response(response),
             format=format,
@@ -154,7 +191,8 @@ class SourceAPI(UMLSAPIBase):
         )
 
     def get_source_ancestors(
-        self, source: str, id: str, return_indented: bool = True, format: str = "json"
+        self, source: str, id: str, return_indented: bool = True, format: str = "json", save_to_file : bool = False,
+        file_path : str = None
     ) -> Union[str, Dict[str, Any]]:
         """Retrieve all ancestors of a known source-asserted identifier."""
 
@@ -169,6 +207,13 @@ class SourceAPI(UMLSAPIBase):
         response = requests.get(url, params=params)
         logger.info(f"Fetching ancestors for: {source}/{id}")
 
+        if save_to_file:
+            if file_path == None:
+                file_path = f"source_ancestors_{source}_{id}.txt"
+            else:
+                file_path = os.path.join(file_path,f"source_ancestors_{source}_{id}.txt")
+            save_output_to_file(response=self._handle_response(response), file_path=file_path)
+
         return handle_response_with_format(
             response=self._handle_response(response),
             format=format,
@@ -176,7 +221,8 @@ class SourceAPI(UMLSAPIBase):
         )
 
     def get_source_descendants(
-        self, source: str, id: str, return_indented: bool = True, format: str = "json"
+        self, source: str, id: str, return_indented: bool = True, format: str = "json", save_to_file : bool = False,
+        file_path : str = None
     ) -> Union[str, Dict[str, Any]]:
         """Retrieve all descendants of a known source-asserted identifier."""
 
@@ -191,6 +237,13 @@ class SourceAPI(UMLSAPIBase):
         response = requests.get(url, params=params)
         logger.info(f"Fetching descendants for: {source}/{id}")
 
+        if save_to_file:
+            if file_path == None:
+                file_path = f"source_descendants_{source}_{id}.txt"
+            else:
+                file_path = os.path.join(file_path,f"source_descendants_{source}_{id}.txt")
+            save_output_to_file(response=self._handle_response(response), file_path=file_path)
+
         return handle_response_with_format(
             response=self._handle_response(response),
             format=format,
@@ -198,7 +251,8 @@ class SourceAPI(UMLSAPIBase):
         )
 
     def get_source_attributes(
-        self, source: str, id: str, return_indented: bool = True, format: str = "json"
+        self, source: str, id: str, return_indented: bool = True, format: str = "json", save_to_file : bool = False,
+        file_path : str = None
     ) -> Union[str, Dict[str, Any]]:
         """Retrieve information about source-asserted attributes."""
 
@@ -210,6 +264,13 @@ class SourceAPI(UMLSAPIBase):
         url = f"{self.base_url}/content/{self.version}/source/{source}/{id}/attributes"
         params = {"apiKey": self.api_key}
         response = requests.get(url, params=params)
+
+        if save_to_file:
+            if file_path == None:
+                file_path = f"source_attributes_{source}_{id}.txt"
+            else:
+                file_path = os.path.join(file_path,f"source_attributes_{source}_{id}.txt")
+            save_output_to_file(response=self._handle_response(response), file_path=file_path)
 
         return handle_response_with_format(
             response=self._handle_response(response),
@@ -229,6 +290,8 @@ class SourceAPI(UMLSAPIBase):
         page_size: int = 25,
         return_indented: bool = True,
         format: str = "json",
+        save_to_file : bool = False,
+        file_path : str = None
     ) -> Union[str, Dict[str, Any]]:
         """Retrieve relationships for a known source-asserted identifier with optional parameters."""
 
@@ -256,6 +319,14 @@ class SourceAPI(UMLSAPIBase):
 
         response = requests.get(url, params=params)
         logger.info(f"Fetching relations for concept: {source}/{id}")
+
+        if save_to_file:
+            if file_path == None:
+                file_path = f"source_relations_{source}_{id}.txt"
+            else:
+                file_path = os.path.join(file_path,f"source_relations_{source}_{id}.txt")
+            save_output_to_file(response=self._handle_response(response), file_path=file_path)
+
         return handle_response_with_format(
             response=self._handle_response(response),
             format=format,
@@ -283,7 +354,8 @@ class SourceAPI(UMLSAPIBase):
         )
 
     def get_concept_pathways(
-        self, source, id, max_depth=2, return_indented=True
+        self, source, id, max_depth=2, return_indented=True, save_to_file : bool = False,
+        file_path : str = None
     ) -> Union[str, Dict[str, Any]]:
         """
         Retrieve full parent-child pathways from the root to the concept and its descendants iteratively.
@@ -346,13 +418,21 @@ class SourceAPI(UMLSAPIBase):
             for child in children:
                 queue.append((child.get("ui"), depth + 1))
 
+        if save_to_file:
+            if file_path == None:
+                file_path = f"concept_pathways_{source}_{id}.txt"
+            else:
+                file_path = os.path.join(file_path,f"concept_pathways_{source}_{id}.txt")
+            save_output_to_file(response=pathways, file_path=file_path)
+
         if return_indented:
             return json.dumps(pathways, indent=4)
         else:
             pathways
 
     def get_related_concepts_by_relation_type(
-        self, source, id, relation_type, return_indented=True
+        self, source, id, relation_type, return_indented=True, save_to_file : bool = False,
+        file_path : str = None
     ):
         """Retrieve related concepts based on the specified relationship type."""
         # Step 1: Fetch the source concept
@@ -392,13 +472,20 @@ class SourceAPI(UMLSAPIBase):
                 f"Found {len(related_concepts)} related concepts for relation type '{relation_type}'."
             )
 
+        if save_to_file:
+            if file_path == None:
+                file_path = f"related_concepts_by_relation_type_{source}_{id}.txt"
+            else:
+                file_path = os.path.join(file_path,f"related_concepts_by_relation_type_{source}_{id}.txt")
+            save_output_to_file(response={relation_type: related_concepts}, file_path=file_path)
+
         if return_indented:
             return json.dumps({relation_type: related_concepts}, indent=4)
         else:
             {relation_type: related_concepts}
 
     # https://www.nlm.nih.gov/research/umls/knowledge_sources/metathesaurus/release/attribute_names.html
-    def get_concept_attributes(self, source, id) -> dict:
+    def get_concept_attributes(self, source : str, id : str) -> dict:
         """Retrieve specific attributes of a source-asserted concept."""
         attributes_response = self.get_source_attributes(source, id)
         attributes = json.loads(attributes_response).get("result", [])
@@ -409,7 +496,8 @@ class SourceAPI(UMLSAPIBase):
         }
         return attribute_dict
 
-    def compare_concepts(self, source, id1, id2, return_indented=True):
+    def compare_concepts(self, source, id1, id2, return_indented=True, save_to_file : bool = False,
+        file_path : str = None):
         """Compare two concepts by examining their relationships, ancestors, and descendants."""
         concept_1_ancestors = json.loads(self.get_source_ancestors(source, id1)).get(
             "result", []
@@ -462,17 +550,33 @@ class SourceAPI(UMLSAPIBase):
             },
         }
 
+        if save_to_file:
+            if file_path == None:
+                file_path = f"compare_concepts_{source}_{id1}_{id2}.txt"
+            else:
+                file_path = os.path.join(file_path,f"compare_concepts_{source}_{id1}_{id2}.txt")
+            save_output_to_file(response=comparison, file_path=file_path)
+
         if return_indented:
             return json.dumps(comparison, indent=4)
         else:
             comparison
 
-    def get_concept_coverage(self, source, id, return_indented=True):
+    def get_concept_coverage(self, source : str, id : str, return_indented : bool =True, save_to_file : bool = False,
+        file_path : str = None) -> dict:
         """Check in which medical systems the concept is present."""
         concept_response = self.get_source_concept(source, id)
         source_systems = (
             json.loads(concept_response).get("result", {}).get("rootSource", [])
         )
+
+        if save_to_file:
+            if file_path == None:
+                file_path = f"concept_coverage_{source}_{id}.txt"
+            else:
+                file_path = os.path.join(file_path,f"concept_coverage_{source}_{id}.txt")
+            save_output_to_file(response={"concept_id": id, "covered_in_sources": source_systems}, file_path=file_path)
+
         if return_indented:
             return json.dumps(
                 {"concept_id": id, "covered_in_sources": source_systems}, indent=4
@@ -481,7 +585,8 @@ class SourceAPI(UMLSAPIBase):
             {"concept_id": id, "covered_in_sources": source_systems}
 
     def aggregate_children_by_attribute(
-        self, source, id, attribute_name, return_indented=True
+        self, source : str, id : str, attribute_name : str, return_indented : bool =True, save_to_file : bool = False,
+        file_path : str = None
     ):
         """Aggregate children of a concept based on a specific attribute."""
         children_response = self.get_source_children(source, id)
@@ -503,13 +608,21 @@ class SourceAPI(UMLSAPIBase):
                 child.get("name")
             )
 
+        if save_to_file:
+            if file_path == None:
+                file_path = f"children_by_attribute_{source}_{id}.txt"
+            else:
+                file_path = os.path.join(file_path,f"children_by_attribute_{source}_{id}.txt")
+            save_output_to_file(response=attribute_aggregation, file_path=file_path)
+
         if return_indented:
             return json.dumps(attribute_aggregation, indent=4)
         else:
             return attribute_aggregation
 
     # New function to get the family tree structure
-    def get_family_tree(self, source, id, max_depth=3, return_indented=True):
+    def get_family_tree(self, source : str, id : str, max_depth : int=3, return_indented : bool=True,save_to_file : bool = False,
+        file_path : str = None):
         """Retrieve a family tree structure with relationships organized in a hierarchy of ancestors and descendants."""
 
         def fetch_ancestors(concept_id, hierarchy, depth=0):
@@ -566,6 +679,13 @@ class SourceAPI(UMLSAPIBase):
         fetch_ancestors(id, family_tree["ancestors"])
         fetch_descendants(id, family_tree["descendants"])
 
+        if save_to_file:
+            if file_path == None:
+                file_path = f"family_tree_{source}_{id}.txt"
+            else:
+                file_path = os.path.join(file_path,f"family_tree_{source}_{id}.txt")
+            save_output_to_file(response=family_tree, file_path=file_path)
+
         if return_indented:
             return json.dumps(family_tree, indent=4)
         else:
@@ -578,7 +698,7 @@ class SourceAPI(UMLSAPIBase):
         depth: int = 0,
         return_indented: bool = True,
         save_to_file: bool = False,
-        file_path: str = "full_hierarchy_output.txt",
+        file_path: str = None,
     ) -> str | Dict[str, Any]:
         """Recursively retrieve all ancestors and descendants until root/leaf, with logging.
 
@@ -643,6 +763,10 @@ class SourceAPI(UMLSAPIBase):
 
         # Save to file if required
         if save_to_file:
+            if file_path == None:
+                file_path = f"full_hierarchy_{source}_{id}.txt"
+            else:
+                file_path = os.path.join(file_path,f"full_hierarchy_{source}_{id}.txt")
             save_output_to_file(response=hierarchy, file_path=file_path)
 
         # Return the hierarchy in the requested format

@@ -13,7 +13,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger()
 
-PATH = r"C:\Users\palas\OneDrive\Desktop\umls-apis\python-umls-apis\output"
+PATH = r"C:\Users\palas\OneDrive\Desktop\umls-apis\umls-python-client\output"
 
 # Fetch the API key from environment variables
 API_KEY = os.getenv("API_KEY")
@@ -37,6 +37,8 @@ if __name__ == "__main__":
         page_size=10,
         return_indented=True,
         format="rdf",
+        save_to_file=True,
+        file_path=PATH
     )
 
     print(crosswalk_data)
