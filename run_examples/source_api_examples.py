@@ -127,15 +127,6 @@ if __name__ == "__main__":
     sys.stdout.flush()
     logger.info(f"Source Relations: {relations}")
 
-    # #############################
-    # # Retrieve Full Hierarchy Recursively
-    # #############################
-    # logger.info(
-    #     "Recursively fetching the full hierarchy for the concept (parents and children):"
-    # )
-    # full_hierarchy = source_api.get_full_hierarchy_recursive(source, source_id, depth=1, return_indented=True)
-    # logger.info(f"Full Recursive Hierarchy:\n {full_hierarchy} \n")
-
     #############################
     # Retrieve Family Tree (Parent-Child Relationships)
     #############################

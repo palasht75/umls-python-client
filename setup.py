@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="umls-python-client",
-    version="1.0.2",
+    version="1.0.3",
     author="Palash Thakur",
     author_email="palasht75@gmail.com",
     description="UMLS Client for interacting with UMLS APIs including Search, Source, CUI, Semantic Network, and Crosswalk APIs.",
@@ -20,7 +20,7 @@ setup(
         "requests",
         "rdflib",
     ],
-    keywords="UMLS, API client, Python, Unified Medical Language System, healthcare data",
+    keywords="UMLS, API client, Python, Unified Medical Language System, healthcare data, umls-python, umls-pyton-client, umls-client, umls-api, py-umls",
     classifiers=[
         "Programming Language :: Python :: 3.9",
         "License :: OSI Approved :: Apache Software License",
