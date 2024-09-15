@@ -43,7 +43,7 @@ if __name__ == "__main__":
         page_number=1,  # Start from the first page
         page_size=10,  # Limit the result to 10 items per page
         save_to_file=True,
-        file_path=PATH
+        file_path=PATH,
     )
     logger.info(f"Search Results for 'diabetes': {search_results}")
 
@@ -58,7 +58,7 @@ if __name__ == "__main__":
         page_number=1,  # Start from the first page
         page_size=10,  # Limit to 10 results per page
         save_to_file=True,
-        file_path=PATH
+        file_path=PATH,
     )
     logger.info(
         f"Search Results for 'hypertension' in SNOMEDCT_US:\n {search_results_vocab}"
@@ -77,7 +77,7 @@ if __name__ == "__main__":
         page_number=1,  # Start from the first page
         page_size=10,  # Limit to 10 results per page
         save_to_file=True,
-        file_path=PATH
+        file_path=PATH,
     )
     logger.info(
         f"Exact Match Search Results for 'myocardial infarction': {search_results_exact}"
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         page_number=1,  # Start from the first page
         page_size=10,  # Limit to 10 results per page
         save_to_file=True,
-        file_path=PATH
+        file_path=PATH,
     )
     logger.info(f"Partial Search Results for 'fracture': {search_results_partial}")
 
@@ -110,7 +110,7 @@ if __name__ == "__main__":
         page_size=10,  # Limit to 10 results per page
         format="rdf",
         save_to_file=True,
-        file_path=PATH
+        file_path=PATH,
     )
     logger.info(
         f"Search Results for 'insulin' including obsolete terms: {search_results_obsolete}"

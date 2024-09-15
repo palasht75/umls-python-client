@@ -38,7 +38,7 @@ if __name__ == "__main__":
         return_indented=True,
         format="rdf",
         save_to_file=True,
-        file_path=PATH
+        file_path=PATH,
     )
 
     print(crosswalk_data)

@@ -45,5 +45,7 @@ if __name__ == "__main__":
     # #############################
     logger.info("Fetching semantic type information for TUI 'T121':")
     tui = "T121"  # TUI for 'Pharmacologic Substance'
-    semantic_type_info_2 = semantic_network_api.get_semantic_type(tui, format="rdf",save_to_file=True, file_path=PATH)
+    semantic_type_info_2 = semantic_network_api.get_semantic_type(
+        tui, format="rdf", save_to_file=True, file_path=PATH
+    )
     logger.info(f"Semantic Type Information for TUI {tui}: {semantic_type_info_2}")
