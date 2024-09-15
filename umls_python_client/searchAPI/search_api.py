@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import Any, Dict, Optional
 
 from umls_python_client.baseAPI.umls_api_base import UMLSAPIBase
@@ -46,7 +47,7 @@ class SearchAPI(UMLSAPIBase):
         return_indented: bool = True,
         format: str = "json",
         save_to_file: bool = False,
-        file_path: str = "search_results.txt",
+        file_path: str = None,
     ) -> Dict[str, Any]:
         """
         Perform a search query on the UMLS Metathesaurus.
@@ -103,6 +104,10 @@ class SearchAPI(UMLSAPIBase):
             return {"error": f"Request failed: {e}"}
 
         if save_to_file:
+            if file_path == None:
+                file_path = f"search_{search_string}.txt"
+            else:
+                file_path = os.path.join(file_path, f"search_{search_string}.txt")
             save_output_to_file(
                 response=self._handle_response(response), file_path=file_path
             )

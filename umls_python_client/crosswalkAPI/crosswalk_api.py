@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import Any, Optional
 
 import requests
@@ -36,7 +37,7 @@ class CrosswalkAPI(UMLSAPIBase):
         return_indented: bool = True,
         format: str = "json",
         save_to_file: bool = False,
-        file_path="crosswalk_results.txt",
+        file_path: str = None,
     ) -> Any:
         """
         Retrieve crosswalk data between vocabularies using a UMLS source and identifier.
@@ -87,6 +88,11 @@ class CrosswalkAPI(UMLSAPIBase):
             return {"error": f"Request failed: {e}"}
 
         if save_to_file:
+            if file_path == None:
+                file_path = f"crosswalk_{source}.txt"
+            else:
+                file_path = os.path.join(file_path, f"crosswalk_{source}.txt")
+                print("RAN", file_path)
             save_output_to_file(
                 response=self._handle_response(response), file_path=file_path
             )

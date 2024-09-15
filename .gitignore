@@ -1,6 +1,16 @@
-#cache files
+# Cache files
 __pycache__/
 
-#output files
+# Output files
 output/
-/run_examples/*.txt
+run_examples/*.txt
+
+# Source modules
+build/
+dist/
+
+*.egg*
+
+# Ignore setup.py and test.py
+setup.py
+test.py
