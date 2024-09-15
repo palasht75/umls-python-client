@@ -13,7 +13,7 @@ logging.basicConfig(
 logger = logging.getLogger()
 
 # PATH = r"C:\Users\palas\OneDrive\Desktop\umls-apis\python-umls-apis\output"
-PATH = r"C:\Users\Shreya\Desktop\umls-apis\umls-python-client\outputs"
+PATH = r"C:\Users\Shreya\Desktop\umls-apis\umls-python-client\output"
 
 # Fetch the API key from environment variables
 API_KEY = os.getenv("API_KEY")
@@ -29,22 +29,15 @@ if __name__ == "__main__":
     # Initialize the SearchAPI class with your API key
     cui_api = UMLSClient(api_key=api_key).cuiAPI
 
-
-    # #############################
-    # # Fetch Semantic Types
-    # #############################
-    # logger.info("Fetching CUI information for 'C0011849':")
-    # cui_info = cui_api.get_cui_info(cui="C0011849")
-    # logger.info(f"CUI Information:\n{cui_info}")
-    # sys.stdout.flush()
-
-
-
     #############################
     # Fetch CUI Information
     #############################
     logger.info("Fetching CUI information for 'C0011849':")
-    cui_info = cui_api.get_cui_info(cui="C0011849")
+    cui_info = cui_api.get_cui_info(
+        cui="C0011849",
+        save_to_file= True,
+        file_path=PATH
+    )
     logger.info(f"CUI Information:\n{cui_info}")
     sys.stdout.flush()
 
@@ -60,7 +53,10 @@ if __name__ == "__main__":
         include_obsolete= False,
         include_suppressible= False,
         page_number= 1,
-        page_size= 25)
+        page_size= 25,
+        save_to_file= True,
+        file_path=PATH
+    )
     logger.info(f"Atoms for CUI 'C0011849':\n{cui_atoms}")
     sys.stdout.flush()
 
@@ -72,7 +68,10 @@ if __name__ == "__main__":
         cui="C0011849",
         sabs="SNOMEDCT_US",
         page_number = 1,
-        page_size = 25)
+        page_size = 25,
+        save_to_file= True,
+        file_path=PATH
+    )
     logger.info(f"Definitions for CUI 'C0011849':\n{cui_definition}")
     sys.stdout.flush()
 
@@ -88,7 +87,10 @@ if __name__ == "__main__":
         include_obsolete= False,
         include_suppressible= False,
         page_number = 1,
-        page_size = 25)
+        page_size = 25,
+        save_to_file= True,
+        file_path=PATH
+    )
     logger.info(f"Relationships for CUI 'C0011849':\n{cui_definition}")
     sys.stdout.flush()
 
