@@ -1,5 +1,7 @@
 import logging
 import os
+from typing import Optional
+
 
 import requests
 
@@ -32,7 +34,30 @@ class CUIAPI(UMLSAPIBase):
         base_url (str): The base URL for UMLS API requests (inherited from UMLSAPIBase).
     """
 
-    def get_cui_info(self, cui):
+
+
+
+    def get_semantic_types(self, cui: str, return_indented: bool = True):
+        """
+            Fetches semantic types for the specified CUI.
+            - Parameters:
+                - cui (str): The Concept Unique Identifier (CUI) to query.
+            - Returns:
+                - A dictionary containing the semantic types associated with the CUI.
+        """
+        url = f"{self.base_url}/content/{self.version}/CUI/{cui}"
+        params = {"apiKey": self.api_key}
+        response = requests.get(url, params=params)
+        logger.info(f"Fetching semantic types for CUI: {cui}")
+        return handle_response_with_format(
+            response=self._handle_response(response),
+            return_indented=return_indented,
+    )
+
+
+
+
+    def get_cui_info(self, cui, return_indented: bool = True):
         """
         Fetches detailed information about the specified CUI from the UMLS Metathesaurus.
         - Parameters:
@@ -45,9 +70,24 @@ class CUIAPI(UMLSAPIBase):
         params = {"apiKey": self.api_key}
         response = requests.get(url, params=params)
         logger.info(f"Fetching CUI concept: {cui}")
-        return self._handle_response(response)
+        # return self._handle_response(response)
+        return handle_response_with_format(
+                response=self._handle_response(response),
+                # format=format,
+                return_indented=return_indented,
+            )
 
-    def get_atoms(self, cui):
+    def get_atoms(
+            self, 
+            cui: str, 
+            return_indented: bool = True,
+            sabs: Optional[str] = None,
+            ttys: Optional[str] = None,
+            language: Optional[str] = None,
+            include_obsolete: bool = False,
+            include_suppressible: bool = False,
+            page_number: int = 1,
+            page_size: int = 25):
         """
         Fetches atoms associated with the specified CUI.
         - Parameters:
@@ -55,14 +95,38 @@ class CUIAPI(UMLSAPIBase):
         - Returns:
             - A dictionary containing atoms related to the CUI.
         """
-
+        # --format holdup
         url = f"{self.base_url}/content/{self.version}/CUI/{cui}/atoms"
-        params = {"apiKey": self.api_key}
+        params = {
+            "apiKey": self.api_key,
+            "sabs": sabs,
+            "ttys": ttys,
+            "language": language,
+            "includeObsolete": str(include_obsolete).lower(),
+            "includeSuppressible": str(include_suppressible).lower(),
+            "pageNumber": page_number,
+            "pageSize": page_size,
+        }
+
+        # Filter out any None values from params
+        params = {k: v for k, v in params.items() if v is not None}
+
         response = requests.get(url, params=params)
         logger.info(f"Fetching CUI atoms for: {cui}")
-        return self._handle_response(response)
+        return handle_response_with_format(
+            response=self._handle_response(response),
+            format=format,
+            return_indented=return_indented,
+        )
 
-    def get_definitions(self, cui):
+    def get_definitions(
+            self, 
+            cui: str, 
+            return_indented: bool = True,
+            sabs: Optional[str] = None,
+            page_number: int = 1,
+            page_size: int = 25
+            ):
         """
         Fetches definitions associated with the specified CUI.
         - Parameters:
@@ -72,12 +136,35 @@ class CUIAPI(UMLSAPIBase):
         """
 
         url = f"{self.base_url}/content/{self.version}/CUI/{cui}/definitions"
-        params = {"apiKey": self.api_key}
+        params = {
+            "apiKey": self.api_key,
+            "sabs": sabs,
+            "pageNumber": page_number,
+            "pageSize": page_size,
+        }
+
+        # Filter out any None values from params
+        params = {k: v for k, v in params.items() if v is not None}
+
         response = requests.get(url, params=params)
         logger.info(f"Fetching CUI definitions for: {cui}")
-        return self._handle_response(response)
+        return handle_response_with_format(
+                response=self._handle_response(response),
+                format=format,
+                return_indented=return_indented,
+            )
 
-    def get_relations(self, cui):
+    def get_relations(self,
+        cui, 
+        return_indented: bool = True,
+        sabs: Optional[str]= None,
+        include_relation_labels: Optional[str] = None,
+        include_additional_labels: Optional[str] = None,
+        include_obsolete: bool = False,
+        include_suppressible: bool = False,
+        page_number: int = 1,
+        page_size: int = 25,
+        ):
         # """Retrieve relationships for a given CUI."""
 
         """
@@ -89,10 +176,27 @@ class CUIAPI(UMLSAPIBase):
         """
 
         url = f"{self.base_url}/content/{self.version}/CUI/{cui}/relations"
-        params = {"apiKey": self.api_key}
+        params = {
+            "apiKey": self.api_key,
+            "sabs": sabs,
+            "includeRelationLabels": include_relation_labels,
+            "includeAdditionalRelationLabels": include_additional_labels,
+            "includeObsolete": str(include_obsolete).lower(),
+            "includeSuppressible": str(include_suppressible).lower(),
+            "pageNumber": page_number,
+            "pageSize": page_size,
+        }
+
+        # Filter out any None values from params
+        params = {k: v for k, v in params.items() if v is not None}
+
         response = requests.get(url, params=params)
         logger.info(f"Fetching CUI relations for: {cui}")
-        return self._handle_response(response)
+        return handle_response_with_format(
+                response=self._handle_response(response),
+                format=format,
+                return_indented=return_indented,
+            )
 
 
 # class SourceAPI(UMLSAPIBase):

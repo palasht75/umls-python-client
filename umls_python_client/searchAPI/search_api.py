@@ -99,7 +99,7 @@ class SearchAPI(UMLSAPIBase):
         try:
             response = requests.get(endpoint, params=params)
         except requests.RequestException as e:
-            logger.error(f"Error during API request: {e}")
+            logger.error(f"Error during API reques t: {e}")
             return {"error": f"Request failed: {e}"}
 
         if save_to_file:
