@@ -1,7 +1,6 @@
 import logging
 import os
-from typing import Optional, Union, Any, Dict
-
+from typing import Any, Dict, Optional, Union
 
 import requests
 
@@ -35,12 +34,12 @@ class CUIAPI(UMLSAPIBase):
     """
 
     def get_cui_info(
-            self,
-            cui,
-            return_indented: bool = True,
-            save_to_file: bool = False,
-            file_path: str = None,
-        ) -> Union[str, Dict[str, Any]]:
+        self,
+        cui,
+        return_indented: bool = True,
+        save_to_file: bool = False,
+        file_path: str = None,
+    ) -> Union[str, Dict[str, Any]]:
         """
         Fetches detailed information about the specified CUI from the UMLS Metathesaurus.
         - Parameters:
@@ -59,32 +58,30 @@ class CUIAPI(UMLSAPIBase):
             if file_path == None:
                 file_path = f"cui_info_{cui}.txt"
             else:
-                file_path = os.path.join(
-                    file_path, f"cui_info_{cui}.txt"
-                    )
+                file_path = os.path.join(file_path, f"cui_info_{cui}.txt")
             save_output_to_file(
-                    response=self._handle_response(response), file_path=file_path
-                )
-
-        return handle_response_with_format(
-                response=self._handle_response(response),
-                return_indented=return_indented,
+                response=self._handle_response(response), file_path=file_path
             )
 
+        return handle_response_with_format(
+            response=self._handle_response(response),
+            return_indented=return_indented,
+        )
+
     def get_atoms(
-            self, 
-            cui: str, 
-            return_indented: bool = True,
-            sabs: Optional[str] = None,
-            ttys: Optional[str] = None,
-            language: Optional[str] = None,
-            include_obsolete: bool = False,
-            include_suppressible: bool = False,
-            page_number: int = 1,
-            page_size: int = 25,
-            save_to_file: bool = False,
-            file_path: str = None,
-        ) -> Union[str, Dict[str, Any]]:
+        self,
+        cui: str,
+        return_indented: bool = True,
+        sabs: Optional[str] = None,
+        ttys: Optional[str] = None,
+        language: Optional[str] = None,
+        include_obsolete: bool = False,
+        include_suppressible: bool = False,
+        page_number: int = 1,
+        page_size: int = 25,
+        save_to_file: bool = False,
+        file_path: str = None,
+    ) -> Union[str, Dict[str, Any]]:
         """
         Fetches atoms associated with the specified CUI.
         - Parameters:
@@ -116,12 +113,10 @@ class CUIAPI(UMLSAPIBase):
             if file_path == None:
                 file_path = f"cui_atoms_{cui}.txt"
             else:
-                file_path = os.path.join(
-                    file_path, f"cui_atoms_{cui}.txt"
-                    )
+                file_path = os.path.join(file_path, f"cui_atoms_{cui}.txt")
             save_output_to_file(
-                    response=self._handle_response(response), file_path=file_path
-                )
+                response=self._handle_response(response), file_path=file_path
+            )
 
         return handle_response_with_format(
             response=self._handle_response(response),
@@ -129,15 +124,15 @@ class CUIAPI(UMLSAPIBase):
         )
 
     def get_definitions(
-            self, 
-            cui: str, 
-            return_indented: bool = True,
-            sabs: Optional[str] = None,
-            page_number: int = 1,
-            page_size: int = 25,
-            save_to_file: bool = False,
-            file_path: str = None,
-        ) -> Union[str, Dict[str, Any]]:
+        self,
+        cui: str,
+        return_indented: bool = True,
+        sabs: Optional[str] = None,
+        page_number: int = 1,
+        page_size: int = 25,
+        save_to_file: bool = False,
+        file_path: str = None,
+    ) -> Union[str, Dict[str, Any]]:
         """
         Fetches definitions associated with the specified CUI.
         - Parameters:
@@ -165,31 +160,30 @@ class CUIAPI(UMLSAPIBase):
             if file_path == None:
                 file_path = f"cui_definitions_{cui}.txt"
             else:
-                file_path = os.path.join(
-                    file_path, f"cui_definitions_{cui}.txt"
-                    )
+                file_path = os.path.join(file_path, f"cui_definitions_{cui}.txt")
             save_output_to_file(
-                    response=self._handle_response(response), file_path=file_path
-                )
-
-        return handle_response_with_format(
-                response=self._handle_response(response),
-                return_indented=return_indented,
+                response=self._handle_response(response), file_path=file_path
             )
 
-    def get_relations(self,
-            cui, 
-            return_indented: bool = True,
-            sabs: Optional[str]= None,
-            include_relation_labels: Optional[str] = None,
-            include_additional_labels: Optional[str] = None,
-            include_obsolete: bool = False,
-            include_suppressible: bool = False,
-            page_number: int = 1,
-            page_size: int = 25,
-            save_to_file: bool = False,
-            file_path: str = None,
-        ) -> Union[str, Dict[str, Any]]:
+        return handle_response_with_format(
+            response=self._handle_response(response),
+            return_indented=return_indented,
+        )
+
+    def get_relations(
+        self,
+        cui,
+        return_indented: bool = True,
+        sabs: Optional[str] = None,
+        include_relation_labels: Optional[str] = None,
+        include_additional_labels: Optional[str] = None,
+        include_obsolete: bool = False,
+        include_suppressible: bool = False,
+        page_number: int = 1,
+        page_size: int = 25,
+        save_to_file: bool = False,
+        file_path: str = None,
+    ) -> Union[str, Dict[str, Any]]:
         """
         Fetches relationships for the specified CUI.
         - Parameters:
@@ -221,14 +215,12 @@ class CUIAPI(UMLSAPIBase):
             if file_path == None:
                 file_path = f"cui_relations_{cui}.txt"
             else:
-                file_path = os.path.join(
-                    file_path, f"cui_relations_{cui}.txt"
-                    )
+                file_path = os.path.join(file_path, f"cui_relations_{cui}.txt")
             save_output_to_file(
-                    response=self._handle_response(response), file_path=file_path
-                )
+                response=self._handle_response(response), file_path=file_path
+            )
 
         return handle_response_with_format(
-                response=self._handle_response(response),
-                return_indented=return_indented,
-            )
+            response=self._handle_response(response),
+            return_indented=return_indented,
+        )

@@ -33,11 +33,7 @@ if __name__ == "__main__":
     # Fetch CUI Information
     #############################
     logger.info("Fetching CUI information for 'C0011849':")
-    cui_info = cui_api.get_cui_info(
-        cui="C0011849",
-        save_to_file= True,
-        file_path=PATH
-    )
+    cui_info = cui_api.get_cui_info(cui="C0011849", save_to_file=True, file_path=PATH)
     logger.info(f"CUI Information:\n{cui_info}")
     sys.stdout.flush()
 
@@ -46,16 +42,16 @@ if __name__ == "__main__":
     #############################
     logger.info("Fetching atoms for CUI 'C0011849':")
     cui_atoms = cui_api.get_atoms(
-        cui="C0011849", 
-        sabs="SNOMEDCT_US", 
+        cui="C0011849",
+        sabs="SNOMEDCT_US",
         ttys="PT",
-        language= None,
-        include_obsolete= False,
-        include_suppressible= False,
-        page_number= 1,
-        page_size= 25,
-        save_to_file= True,
-        file_path=PATH
+        language=None,
+        include_obsolete=False,
+        include_suppressible=False,
+        page_number=1,
+        page_size=25,
+        save_to_file=True,
+        file_path=PATH,
     )
     logger.info(f"Atoms for CUI 'C0011849':\n{cui_atoms}")
     sys.stdout.flush()
@@ -67,10 +63,10 @@ if __name__ == "__main__":
     cui_definition = cui_api.get_definitions(
         cui="C0011849",
         sabs="SNOMEDCT_US",
-        page_number = 1,
-        page_size = 25,
-        save_to_file= True,
-        file_path=PATH
+        page_number=1,
+        page_size=25,
+        save_to_file=True,
+        file_path=PATH,
     )
     logger.info(f"Definitions for CUI 'C0011849':\n{cui_definition}")
     sys.stdout.flush()
@@ -82,15 +78,14 @@ if __name__ == "__main__":
     cui_definition = cui_api.get_relations(
         cui="C0011849",
         sabs="SNOMEDCT_US",
-        include_relation_labels= None,
-        include_additional_labels= None,
-        include_obsolete= False,
-        include_suppressible= False,
-        page_number = 1,
-        page_size = 25,
-        save_to_file= True,
-        file_path=PATH
+        include_relation_labels=None,
+        include_additional_labels=None,
+        include_obsolete=False,
+        include_suppressible=False,
+        page_number=1,
+        page_size=25,
+        save_to_file=True,
+        file_path=PATH,
     )
     logger.info(f"Relationships for CUI 'C0011849':\n{cui_definition}")
     sys.stdout.flush()
-
