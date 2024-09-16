@@ -123,12 +123,10 @@ search_results = search_api.search(
 print(f"Search Results for 'diabetes': {search_results}")
 ```
 
-*For more examples, please refer to our [documentation](/umls-python-client-homepage/searchAPI) and interactive notebooks.*
 ## Documentation and Resources
 
 - **Full Documentation**: <a href="https://palasht75.github.io/umls-python-client-homepage/" target="_blank">Homepage</a>
 - **UMLS REST APIs Home**: <a href="https://documentation.uts.nlm.nih.gov/rest/home.html" target="_blank">UMLS API Documentation</a>
-- **Project Repository**: <a href="https://github.com/palasht75/umls-python-client" target="_blank">GitHub Repository</a>
 
 ## Contribute
 
@@ -138,4 +136,4 @@ We welcome contributions from the community! If you have any improvements or new
 
 ## Support and Future Updates
 
-We are committed to maintaining and updating this client to support all future changes in the UMLS APIs. If you encounter any issues or have feature requests, please open an issue on our [GitHub repository](https://github.com/palasht75/umls-python-client).
+We are committed to maintaining and updating this client to support all future changes in the UMLS APIs. If you encounter any issues or have feature requests, please open an issue on our [GitHub repository](https://github.com/palasht75/umls-python-client/issues).
