@@ -355,7 +355,7 @@ class SourceAPI(UMLSAPIBase):
             )
             return ""
 
-        # Parameters based on the provided screenshot
+        
         params = {
             "apiKey": self.api_key,
             "includeRelationLabels": include_relation_labels,
