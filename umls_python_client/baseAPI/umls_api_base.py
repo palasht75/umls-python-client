@@ -61,7 +61,7 @@ class UMLSAPIBase:
         if response.status_code == 200:
             try:
                 response_json = response.json()  # Parse response as JSON
-              
+
                 return response_json  # Return raw JSON
             except ValueError as e:
                 logger.error(f"Error parsing JSON response: {e}")
