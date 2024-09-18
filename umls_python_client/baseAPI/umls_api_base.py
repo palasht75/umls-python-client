@@ -37,7 +37,6 @@ class UMLSAPIBase:
         self.api_key = api_key
         self.base_url = "https://uts-ws.nlm.nih.gov/rest"
         self.version = version
-        # self.return_indented = return_indented
 
     def _format_json(self, data: Dict[str, Any]) -> str:
         """
@@ -62,8 +61,7 @@ class UMLSAPIBase:
         if response.status_code == 200:
             try:
                 response_json = response.json()  # Parse response as JSON
-                # if self.return_indented:
-                #     return self._format_json(response_json)  # Return formatted JSON string
+              
                 return response_json  # Return raw JSON
             except ValueError as e:
                 logger.error(f"Error parsing JSON response: {e}")
@@ -78,7 +76,6 @@ class UMLSAPIBase:
                 "documentation_url": "https://documentation.uts.nlm.nih.gov/rest/authentication.html",
             }
             return error_response
-            # return self._format_json(error_response) if self.return_indented else error_response
 
         # Handle Forbidden (403)
         if response.status_code == 403:
@@ -87,7 +84,6 @@ class UMLSAPIBase:
                 "error": "Access denied. You do not have permission to access this resource.",
                 "resolution": "Ensure that your API key has the appropriate permissions.",
             }
-            # return self._format_json(error_response) if self.return_indented else error_response
             return error_response
         # Handle Not Found (404)
         if response.status_code == 404:
@@ -96,7 +92,6 @@ class UMLSAPIBase:
                 "error": "Resource not found. The requested resource could not be found.",
                 "resolution": "Check the endpoint or resource identifier in the request.",
             }
-            # return self._format_json(error_response) if self.return_indented else error_response
             return error_response
         # Handle other client or server errors (4xx or 5xx)
         error_message = {
@@ -107,52 +102,4 @@ class UMLSAPIBase:
         logger.error(
             f"API request failed with status code {response.status_code}: {response.text}"
         )
-        # return self._format_json(error_message) if self.return_indented else error_message
         return error_message
-
-    # def make_request(
-    #     self, endpoint: str, params: Optional[Dict[str, str]] = None
-    # ) -> Any:
-    #     """
-    #     Make a GET request to the UMLS API with the given endpoint and parameters.
-
-    #     Args:
-    #         endpoint (str): The API endpoint to call, e.g., "/content/current/CUI/C0004238".
-    #         params (Dict[str, str], optional): The query parameters for the request. Defaults to None.
-
-    #     Returns:
-    #         Any: The parsed JSON response or a formatted string if `return_indented` is set to True.
-    #     """
-    #     url = f"{self.base_url}/{endpoint}"
-    #     params = params or {}
-    #     params["apiKey"] = self.api_key
-
-    #     logger.info(f"Making API request to: {url} with params: {params}")
-
-    #     try:
-    #         response = requests.get(url, params=params, timeout=10)  # Timeout to prevent hanging requests
-    #         return self._handle_response(response)
-
-    #     except requests.exceptions.Timeout:
-    #         logger.error("Request timed out.")
-    #         timeout_error = {
-    #             "error": "Request timed out.",
-    #             "resolution": "Try reducing the complexity of the request or increasing the timeout.",
-    #         }
-    #         return self._format_json(timeout_error) if self.return_indented else timeout_error
-
-    #     except requests.exceptions.ConnectionError:
-    #         logger.error("Connection error occurred.")
-    #         connection_error = {
-    #             "error": "Connection error.",
-    #             "resolution": "Check your internet connection or try again later.",
-    #         }
-    #         return self._format_json(connection_error) if self.return_indented else connection_error
-
-    #     except requests.exceptions.RequestException as e:
-    #         logger.error(f"An unexpected error occurred: {e}")
-    #         general_error = {
-    #             "error": "An unexpected error occurred.",
-    #             "details": str(e),
-    #         }
-    #         return self._format_json(general_error) if self.return_indented else general_error

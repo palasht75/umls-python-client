@@ -1,7 +1,7 @@
 import logging
 import os
 from typing import Any, Dict, Optional
-
+import requests
 from umls_python_client.baseAPI.umls_api_base import UMLSAPIBase
 from umls_python_client.utils.save_output import save_output_to_file
 from umls_python_client.utils.utils import handle_response_with_format
@@ -12,7 +12,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger()
 
-import requests
 
 
 class SearchAPI(UMLSAPIBase):
