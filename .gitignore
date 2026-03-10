@@ -1,16 +1,26 @@
-# Cache files
+# Python cache/artifacts
 __pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
 
-# Output files
-output/
-run_examples/*.txt
+# Virtual environments
+.venv/
+venv/
+env/
 
-# Source modules
+# Build/distribution
 build/
 dist/
+*.egg-info/
+*.egg
 
-*.egg*
+# IDE/editor
+.vscode/
+.idea/
 
-# Ignore setup.py and test.py
-setup.py
-test.py
+# Local output/examples
+output/
+run_examples/*.txt

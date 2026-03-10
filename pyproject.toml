@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "umls-python-client"
+version = "1.0.0"
+description = "Python client library for the UMLS REST APIs."
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+  {name = "Palash Tiwari"},
+]
+requires-python = ">=3.9"
+dependencies = [
+  "requests>=2.31.0",
+  "rdflib>=7.0.0",
+]
+keywords = ["umls", "healthcare", "medical-terminology", "nlm", "api-client"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+  "ruff>=0.6.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/palasht75/umls-python-client"
+Documentation = "https://palasht75.github.io/umls-python-client-homepage/"
+Issues = "https://github.com/palasht75/umls-python-client/issues"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["umls_python_client*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]

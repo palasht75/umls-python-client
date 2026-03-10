@@ -1,10 +1,17 @@
-from typing import Dict
+import logging
+from typing import Any, Dict
 
-from rdflib import Graph, Literal, Namespace, URIRef
+try:
+    from rdflib import Graph, Literal, Namespace, URIRef
+except ImportError:  # pragma: no cover - exercised only when optional dep is missing
+    Graph = Literal = Namespace = URIRef = None  # type: ignore[assignment]
+
+logger = logging.getLogger(__name__)
 
 
 def convert_to_rdf(
-    json_data: Dict, namespace_url: str = "https://uts-ws.nlm.nih.gov/rest/content/#"
+    json_data: Dict[str, Any],
+    namespace_url: str = "https://uts-ws.nlm.nih.gov/rest/content/#",
 ) -> str:
     """
     Convert the UMLS JSON data to RDF format dynamically, handling both lists and dictionaries in the 'result' field.
@@ -16,6 +23,9 @@ def convert_to_rdf(
     Returns:
         str: The RDF data in Turtle format.
     """
+    if Graph is None:
+        raise RuntimeError("RDF output requires optional dependency 'rdflib'.")
+
     # Initialize the RDF graph
     g = Graph()
 
@@ -41,28 +51,27 @@ def convert_to_rdf(
             if isinstance(item, dict):
                 add_triples_from_dict(g, item, UMLS)
             else:
-                # Log or handle non-dictionary items if needed
-                print("Skipping non-dictionary item in result list")
+                logger.warning("Skipping non-dictionary item in result list.")
 
     # Serialize the RDF graph to a string in Turtle format
     rdf_data = g.serialize(format="turtle")
     return rdf_data
 
 
-def add_triples_from_dict(g: Graph, data: Dict, UMLS: Namespace):
+def add_triples_from_dict(g: Graph, data: Dict[str, Any], umls: Namespace) -> None:
     """
     Helper function to add RDF triples from a dictionary of data.
 
     Args:
         g (Graph): The RDF graph.
         data (dict): The dictionary to process.
-        UMLS (Namespace): The RDF namespace.
+        umls (Namespace): The RDF namespace.
     """
     # Use the 'ui' or 'concept' field as the subject URI, fallback to a generic URI if not available
-    if data.get("uri") != None:
-        subject_uri = URIRef(data.get("uri", f"{UMLS}unknown_concept"))
+    if data.get("uri") is not None:
+        subject_uri = URIRef(data.get("uri", f"{umls}unknown_concept"))
     else:
-        subject_uri = URIRef(data.get("ui", f"{UMLS}unknown_concept"))
+        subject_uri = URIRef(data.get("ui", f"{umls}unknown_concept"))
 
     # Define a list of key fields that are common across multiple UMLS APIs
     common_fields = [
@@ -92,14 +101,14 @@ def add_triples_from_dict(g: Graph, data: Dict, UMLS: Namespace):
             if isinstance(field_value, str) and field_value.startswith(
                 "http"
             ):  # If it's a URL
-                g.add((subject_uri, UMLS[field], URIRef(field_value)))
+                g.add((subject_uri, umls[field], URIRef(field_value)))
             else:
-                g.add((subject_uri, UMLS[field], Literal(field_value)))
+                g.add((subject_uri, umls[field], Literal(field_value)))
 
     # Handle any additional fields not covered in 'common_fields' (for flexibility)
     for field, value in data.items():
         if field not in common_fields and value and value != "NONE":
             if isinstance(value, str) and value.startswith("http"):  # If it's a URL
-                g.add((subject_uri, UMLS[field], URIRef(value)))
+                g.add((subject_uri, umls[field], URIRef(value)))
             else:
-                g.add((subject_uri, UMLS[field], Literal(value)))
+                g.add((subject_uri, umls[field], Literal(value)))

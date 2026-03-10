@@ -1,17 +1,9 @@
 import logging
-import os
-
-import requests
+from typing import Optional
 
 from umls_python_client.baseAPI.umls_api_base import UMLSAPIBase
-from umls_python_client.utils.save_output import save_output_to_file
-from umls_python_client.utils.utils import handle_response_with_format
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class SemanticNetworkAPI(UMLSAPIBase):
@@ -29,9 +21,9 @@ class SemanticNetworkAPI(UMLSAPIBase):
         self,
         tui: str,
         save_to_file: bool = False,
-        file_path: str = None,
+        file_path: Optional[str] = None,
         return_indented: bool = True,
-        **kwargs,
+        format: str = "json",
     ):
         """
         Retrieve information about a semantic type using its TUI (Type Unique Identifier).
@@ -40,36 +32,12 @@ class SemanticNetworkAPI(UMLSAPIBase):
         Returns:
             dict: The semantic type information retrieved from the UMLS API.
         """
-        if "format" in kwargs:
-            logger.warning(
-                "Format is unavailable for this function, it will be enabled in future."
-            )
-
-        # Construct the URL for the semantic network endpoint
-        url = f"{self.base_url}/semantic-network/{self.version}/TUI/{tui}"
-        params = {"apiKey": self.api_key}
-
-        # Log the API request
-        logger.info(f"Fetching semantic type for TUI: {tui}")
-
-        # Make the API request
-        try:
-            response = requests.get(url, params=params)
-        except requests.RequestException as e:
-            logger.error(f"Error during API request: {e}")
-            return {"error": f"Request failed: {e}"}
-
-        if save_to_file:
-            if file_path == None:
-                file_path = f"semantic_type_{tui}.txt"
-            else:
-                file_path = os.path.join(file_path, f"semantic_type_{tui}.txt")
-            save_output_to_file(
-                response=self._handle_response(response), file_path=file_path
-            )
-
-        # Handle the response
-        return handle_response_with_format(
-            response=self._handle_response(response),
+        logger.info("Fetching semantic type for TUI: %s", tui)
+        return self._request_formatted(
+            path=f"/semantic-network/{self.version}/TUI/{tui}",
+            output_format=format,
             return_indented=return_indented,
+            save_to_file=save_to_file,
+            file_path=file_path,
+            default_file_name=f"semantic_type_{tui}.txt",
         )

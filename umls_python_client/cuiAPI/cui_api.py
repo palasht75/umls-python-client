@@ -1,19 +1,9 @@
 import logging
-import os
 from typing import Any, Dict, Optional, Union
 
-import requests
-
 from umls_python_client.baseAPI.umls_api_base import UMLSAPIBase
-from umls_python_client.utils.save_output import save_output_to_file
-from umls_python_client.utils.utils import handle_response_with_format
 
-API_KEY = os.getenv("API_KEY")
-
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class CUIAPI(UMLSAPIBase):
@@ -38,7 +28,7 @@ class CUIAPI(UMLSAPIBase):
         cui,
         return_indented: bool = True,
         save_to_file: bool = False,
-        file_path: str = None,
+        file_path: Optional[str] = None,
     ) -> Union[str, Dict[str, Any]]:
         """
         Fetches detailed information about the specified CUI from the UMLS Metathesaurus.
@@ -48,24 +38,14 @@ class CUIAPI(UMLSAPIBase):
             - A dictionary containing the detailed information about the CUI.
         """
 
-        url = f"{self.base_url}/content/{self.version}/CUI/{cui}"
-        params = {"apiKey": self.api_key}
-        response = requests.get(url, params=params)
-        logger.info(f"Fetching CUI concept: {cui}")
-
-        # Save to file if required
-        if save_to_file:
-            if file_path == None:
-                file_path = f"cui_info_{cui}.txt"
-            else:
-                file_path = os.path.join(file_path, f"cui_info_{cui}.txt")
-            save_output_to_file(
-                response=self._handle_response(response), file_path=file_path
-            )
-
-        return handle_response_with_format(
-            response=self._handle_response(response),
+        logger.info("Fetching CUI concept: %s", cui)
+        return self._request_formatted(
+            path=f"/content/{self.version}/CUI/{cui}",
+            output_format="json",
             return_indented=return_indented,
+            save_to_file=save_to_file,
+            file_path=file_path,
+            default_file_name=f"cui_info_{cui}.txt",
         )
 
     def get_atoms(
@@ -80,7 +60,7 @@ class CUIAPI(UMLSAPIBase):
         page_number: int = 1,
         page_size: int = 25,
         save_to_file: bool = False,
-        file_path: str = None,
+        file_path: Optional[str] = None,
     ) -> Union[str, Dict[str, Any]]:
         """
         Fetches atoms associated with the specified CUI.
@@ -89,10 +69,7 @@ class CUIAPI(UMLSAPIBase):
         - Returns:
             - A dictionary containing atoms related to the CUI.
         """
-        # --format holdup
-        url = f"{self.base_url}/content/{self.version}/CUI/{cui}/atoms"
         params = {
-            "apiKey": self.api_key,
             "sabs": sabs,
             "ttys": ttys,
             "language": language,
@@ -102,25 +79,15 @@ class CUIAPI(UMLSAPIBase):
             "pageSize": page_size,
         }
 
-        # Filter out any None values from params
-        params = {k: v for k, v in params.items() if v is not None}
-
-        response = requests.get(url, params=params)
-        logger.info(f"Fetching CUI atoms for: {cui}")
-
-        # Save to file if required
-        if save_to_file:
-            if file_path == None:
-                file_path = f"cui_atoms_{cui}.txt"
-            else:
-                file_path = os.path.join(file_path, f"cui_atoms_{cui}.txt")
-            save_output_to_file(
-                response=self._handle_response(response), file_path=file_path
-            )
-
-        return handle_response_with_format(
-            response=self._handle_response(response),
+        logger.info("Fetching CUI atoms for: %s", cui)
+        return self._request_formatted(
+            path=f"/content/{self.version}/CUI/{cui}/atoms",
+            params=params,
+            output_format="json",
             return_indented=return_indented,
+            save_to_file=save_to_file,
+            file_path=file_path,
+            default_file_name=f"cui_atoms_{cui}.txt",
         )
 
     def get_definitions(
@@ -131,7 +98,7 @@ class CUIAPI(UMLSAPIBase):
         page_number: int = 1,
         page_size: int = 25,
         save_to_file: bool = False,
-        file_path: str = None,
+        file_path: Optional[str] = None,
     ) -> Union[str, Dict[str, Any]]:
         """
         Fetches definitions associated with the specified CUI.
@@ -140,34 +107,21 @@ class CUIAPI(UMLSAPIBase):
         - Returns:
             - A dictionary containing definitions tied to the CUI.
         """
-
-        url = f"{self.base_url}/content/{self.version}/CUI/{cui}/definitions"
         params = {
-            "apiKey": self.api_key,
             "sabs": sabs,
             "pageNumber": page_number,
             "pageSize": page_size,
         }
 
-        # Filter out any None values from params
-        params = {k: v for k, v in params.items() if v is not None}
-
-        response = requests.get(url, params=params)
-        logger.info(f"Fetching CUI definitions for: {cui}")
-
-        # Save to file if required
-        if save_to_file:
-            if file_path == None:
-                file_path = f"cui_definitions_{cui}.txt"
-            else:
-                file_path = os.path.join(file_path, f"cui_definitions_{cui}.txt")
-            save_output_to_file(
-                response=self._handle_response(response), file_path=file_path
-            )
-
-        return handle_response_with_format(
-            response=self._handle_response(response),
+        logger.info("Fetching CUI definitions for: %s", cui)
+        return self._request_formatted(
+            path=f"/content/{self.version}/CUI/{cui}/definitions",
+            params=params,
+            output_format="json",
             return_indented=return_indented,
+            save_to_file=save_to_file,
+            file_path=file_path,
+            default_file_name=f"cui_definitions_{cui}.txt",
         )
 
     def get_relations(
@@ -182,7 +136,7 @@ class CUIAPI(UMLSAPIBase):
         page_number: int = 1,
         page_size: int = 25,
         save_to_file: bool = False,
-        file_path: str = None,
+        file_path: Optional[str] = None,
     ) -> Union[str, Dict[str, Any]]:
         """
         Fetches relationships for the specified CUI.
@@ -191,10 +145,7 @@ class CUIAPI(UMLSAPIBase):
         - Returns:
             - A dictionary containing the relationships of the CUI.
         """
-
-        url = f"{self.base_url}/content/{self.version}/CUI/{cui}/relations"
         params = {
-            "apiKey": self.api_key,
             "sabs": sabs,
             "includeRelationLabels": include_relation_labels,
             "includeAdditionalRelationLabels": include_additional_labels,
@@ -204,23 +155,13 @@ class CUIAPI(UMLSAPIBase):
             "pageSize": page_size,
         }
 
-        # Filter out any None values from params
-        params = {k: v for k, v in params.items() if v is not None}
-
-        response = requests.get(url, params=params)
-        logger.info(f"Fetching CUI relations for: {cui}")
-
-        # Save to file if required
-        if save_to_file:
-            if file_path == None:
-                file_path = f"cui_relations_{cui}.txt"
-            else:
-                file_path = os.path.join(file_path, f"cui_relations_{cui}.txt")
-            save_output_to_file(
-                response=self._handle_response(response), file_path=file_path
-            )
-
-        return handle_response_with_format(
-            response=self._handle_response(response),
+        logger.info("Fetching CUI relations for: %s", cui)
+        return self._request_formatted(
+            path=f"/content/{self.version}/CUI/{cui}/relations",
+            params=params,
+            output_format="json",
             return_indented=return_indented,
+            save_to_file=save_to_file,
+            file_path=file_path,
+            default_file_name=f"cui_relations_{cui}.txt",
         )

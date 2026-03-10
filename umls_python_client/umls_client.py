@@ -8,11 +8,7 @@ from umls_python_client.semanticNetworkAPI.semantic_network_api import (
 )
 from umls_python_client.sourceAPI.source_api import SourceAPI
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class UMLSClient:
@@ -27,7 +23,7 @@ class UMLSClient:
     This class organizes the APIs into namespaces for easy access.
     """
 
-    def __init__(self, api_key: str, version: str = "current"):
+    def __init__(self, api_key: str, version: str = "current", timeout: float = 30.0):
         """
         Initialize the UMLSClient with the provided API key and version.
         Each API is accessible via its own namespace, like sourceAPI, searchAPI, cuiAPI.
@@ -35,15 +31,22 @@ class UMLSClient:
         Args:
             api_key (str): UMLS API key required for authentication.
             version (str): UMLS version to use for API calls (default is "current").
+            timeout (float): Timeout in seconds for each HTTP request.
         """
-        # Initialize individual API clients as attributes
-        self.searchAPI = SearchAPI(api_key, version)
-        self.sourceAPI = SourceAPI(api_key, version)
-        self.cuiAPI = CUIAPI(api_key, version)
-        self.semanticNetworkAPI = SemanticNetworkAPI(api_key, version)
-        self.crosswalkAPI = CrosswalkAPI(api_key, version)
-
-        # Log the successful initialization of UMLSClient
-        logger.info(
-            "UMLSClient initialized with SearchAPI, SourceAPI, CUIAPI, semanticNetworkAPI and crosswalkAPI"
+        # Preferred snake_case API namespaces
+        self.search_api = SearchAPI(api_key, version, timeout=timeout)
+        self.source_api = SourceAPI(api_key, version, timeout=timeout)
+        self.cui_api = CUIAPI(api_key, version, timeout=timeout)
+        self.semantic_network_api = SemanticNetworkAPI(
+            api_key, version, timeout=timeout
         )
+        self.crosswalk_api = CrosswalkAPI(api_key, version, timeout=timeout)
+
+        # Backwards-compatible aliases
+        self.searchAPI = self.search_api
+        self.sourceAPI = self.source_api
+        self.cuiAPI = self.cui_api
+        self.semanticNetworkAPI = self.semantic_network_api
+        self.crosswalkAPI = self.crosswalk_api
+
+        logger.info("UMLSClient initialized for version '%s'.", version)

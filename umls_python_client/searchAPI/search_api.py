@@ -1,18 +1,9 @@
 import logging
-import os
-from typing import Any, Dict, Optional
-
-import requests
+from typing import Any, Optional
 
 from umls_python_client.baseAPI.umls_api_base import UMLSAPIBase
-from umls_python_client.utils.save_output import save_output_to_file
-from umls_python_client.utils.utils import handle_response_with_format
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class SearchAPI(UMLSAPIBase):
@@ -47,8 +38,8 @@ class SearchAPI(UMLSAPIBase):
         return_indented: bool = True,
         format: str = "json",
         save_to_file: bool = False,
-        file_path: str = None,
-    ) -> Dict[str, Any]:
+        file_path: Optional[str] = None,
+    ) -> Any:
         """
         Perform a search query on the UMLS Metathesaurus.
 
@@ -69,10 +60,9 @@ class SearchAPI(UMLSAPIBase):
             page_size (int, optional): Specifies the number of results to include per page. Default is 25.
 
         Returns:
-            Dict[str, Any]: The search results from the UMLS API.
+            Any: The search results from the UMLS API.
         """
 
-        # Construct the query parameters
         params = {
             "string": search_string,
             "inputType": input_type,
@@ -84,37 +74,15 @@ class SearchAPI(UMLSAPIBase):
             "partialSearch": str(partial_search).lower(),
             "pageNumber": page_number,
             "pageSize": page_size,
-            "apiKey": self.api_key,
         }
 
-        # Remove any parameters that are None (optional parameters not provided)
-        params = {k: v for k, v in params.items() if v is not None}
-
-        # Log the API request being made
-        logger.info(f"Searching UMLS with parameters: {params}")
-
-        # Define the endpoint
-        endpoint = f"{self.base_url}/search/{self.version}"
-
-        # Make the API request
-        try:
-            response = requests.get(endpoint, params=params)
-        except requests.RequestException as e:
-            logger.error(f"Error during API request: {e}")
-            return {"error": f"Request failed: {e}"}
-
-        if save_to_file:
-            if file_path == None:
-                file_path = f"search_{search_string}.txt"
-            else:
-                file_path = os.path.join(file_path, f"search_{search_string}.txt")
-            save_output_to_file(
-                response=self._handle_response(response), file_path=file_path
-            )
-
-        # Handle the response
-        return handle_response_with_format(
-            response=self._handle_response(response),
-            format=format,
+        logger.info("Searching UMLS for '%s'", search_string)
+        return self._request_formatted(
+            path=f"/search/{self.version}",
+            params=params,
+            output_format=format,
             return_indented=return_indented,
+            save_to_file=save_to_file,
+            file_path=file_path,
+            default_file_name=f"search_{search_string}.txt",
         )

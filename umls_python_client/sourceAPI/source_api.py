@@ -1,19 +1,11 @@
 import json
 import logging
-import os
 from typing import Any, Dict, Optional, Union
-
-import requests
 
 from umls_python_client.baseAPI.umls_api_base import UMLSAPIBase
 from umls_python_client.utils.save_output import save_output_to_file
-from umls_python_client.utils.utils import handle_response_with_format
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class SourceAPI(UMLSAPIBase):
@@ -26,54 +18,17 @@ class SourceAPI(UMLSAPIBase):
         return_indented: bool = True,
         format: str = "json",
         save_to_file: bool = False,
-        file_path: str = None,
+        file_path: Optional[str] = None,
     ) -> Union[str, Dict[str, Any]]:
-
-        if format not in ["json", "rdf"]:
-            logger.error(
-                "Invalid output format selected. Available types are 'json' and 'rdf'."
-            )
-            raise ValueError("Invalid format. Please choose either 'json' or 'rdf'.")
-
-        # Construct the URL and parameters for the API request
-        url = f"{self.base_url}/content/{self.version}/source/{source}/{id}"
-        params = {"apiKey": self.api_key}
-
-        try:
-            # Make the API request
-            logger.info(f"Fetching source concept: {source}/{id}")
-            response = requests.get(url, params=params)
-            # If the status code error handling is already in _handle_response, no need to add it here
-
-            # Save to file if required
-            if save_to_file:
-                if file_path == None:
-                    file_path = f"source_concept_{source}_{id}.txt"
-                else:
-                    file_path = os.path.join(
-                        file_path, f"source_concept_{source}_{id}.txt"
-                    )
-                save_output_to_file(
-                    response=self._handle_response(response), file_path=file_path
-                )
-
-            return handle_response_with_format(
-                response=self._handle_response(response),
-                format=format,
-                return_indented=return_indented,
-            )
-
-        except requests.RequestException as e:
-            logger.error(f"Error making the API request: {e}")
-            raise Exception(f"API request error: {e}")
-
-        except json.JSONDecodeError as e:
-            logger.error(f"Error decoding the API response as JSON: {e}")
-            raise Exception(f"JSON decode error: {e}")
-
-        except Exception as e:
-            logger.error(f"An unexpected error occurred: {e}")
-            raise Exception(f"Unexpected error: {e}")
+        logger.info("Fetching source concept: %s/%s", source, id)
+        return self._request_formatted(
+            path=f"/content/{self.version}/source/{source}/{id}",
+            output_format=format,
+            return_indented=return_indented,
+            save_to_file=save_to_file,
+            file_path=file_path,
+            default_file_name=f"source_concept_{source}_{id}.txt",
+        )
 
     def get_source_atoms(
         self,
@@ -89,54 +44,27 @@ class SourceAPI(UMLSAPIBase):
         return_indented: bool = True,
         format: str = "json",
         save_to_file: bool = False,
-        file_path: str = None,
+        file_path: Optional[str] = None,
     ) -> Union[str, Dict[str, Any]]:
         """Retrieve atoms for a known source-asserted identifier with optional filters."""
-
-        if format not in ["json", "rdf"]:
-            logger.error(
-                "Invalid output format selected. Available types are json, rdf"
-            )
-            return ""
-
-        url = f"{self.base_url}/content/{self.version}/source/{source}/{id}/atoms"
-
-        # Parameters for the query
         params = {
-            "apiKey": self.api_key,
-            "sabs": sabs,  # Comma-separated list of source vocabularies (e.g., "SNOMEDCT_US,ICD10CM")
-            "ttys": ttys,  # Comma-separated list of term types (e.g., "PT,SY")
-            "language": language,  # Specific language (e.g., "ENG", "SPA")
-            "includeObsolete": str(
-                include_obsolete
-            ).lower(),  # Include obsolete atoms or not
-            "includeSuppressible": str(
-                include_suppressible
-            ).lower(),  # Include suppressible atoms or not
-            "pageNumber": page_number,  # Page number to fetch
-            "pageSize": page_size,  # Number of results per page
+            "sabs": sabs,
+            "ttys": ttys,
+            "language": language,
+            "includeObsolete": str(include_obsolete).lower(),
+            "includeSuppressible": str(include_suppressible).lower(),
+            "pageNumber": page_number,
+            "pageSize": page_size,
         }
-
-        # Filter out any None values from the parameters (as they are optional)
-        params = {k: v for k, v in params.items() if v is not None}
-
-        # Make the request
-        response = requests.get(url, params=params)
-        logger.info(f"Fetching source atoms for: {source}/{id}")
-
-        if save_to_file:
-            if file_path == None:
-                file_path = f"source_atoms_{source}_{id}.txt"
-            else:
-                file_path = os.path.join(file_path, f"source_atoms_{source}_{id}.txt")
-            save_output_to_file(
-                response=self._handle_response(response), file_path=file_path
-            )
-
-        return handle_response_with_format(
-            response=self._handle_response(response),
-            format=format,
+        logger.info("Fetching source atoms for: %s/%s", source, id)
+        return self._request_formatted(
+            path=f"/content/{self.version}/source/{source}/{id}/atoms",
+            params=params,
+            output_format=format,
             return_indented=return_indented,
+            save_to_file=save_to_file,
+            file_path=file_path,
+            default_file_name=f"source_atoms_{source}_{id}.txt",
         )
 
     def get_source_parents(
@@ -146,32 +74,16 @@ class SourceAPI(UMLSAPIBase):
         return_indented: bool = True,
         format: str = "json",
         save_to_file: bool = False,
-        file_path: str = None,
+        file_path: Optional[str] = None,
     ) -> Union[str, Dict[str, Any]]:
         """Retrieve immediate parents of a known source-asserted identifier."""
-        if format not in ["json", "rdf"]:
-            logger.error(
-                "Invalid output format selected. Available types are json, rdf"
-            )
-            return ""
-
-        url = f"{self.base_url}/content/{self.version}/source/{source}/{id}/parents"
-        params = {"apiKey": self.api_key}
-        response = requests.get(url, params=params)
-
-        if save_to_file:
-            if file_path == None:
-                file_path = f"source_parents_{source}_{id}.txt"
-            else:
-                file_path = os.path.join(file_path, f"source_parents_{source}_{id}.txt")
-            save_output_to_file(
-                response=self._handle_response(response), file_path=file_path
-            )
-
-        return handle_response_with_format(
-            response=self._handle_response(response),
-            format=format,
+        return self._request_formatted(
+            path=f"/content/{self.version}/source/{source}/{id}/parents",
+            output_format=format,
             return_indented=return_indented,
+            save_to_file=save_to_file,
+            file_path=file_path,
+            default_file_name=f"source_parents_{source}_{id}.txt",
         )
 
     def get_source_children(
@@ -181,35 +93,16 @@ class SourceAPI(UMLSAPIBase):
         return_indented: bool = True,
         format: str = "json",
         save_to_file: bool = False,
-        file_path: str = None,
+        file_path: Optional[str] = None,
     ) -> Union[str, Dict[str, Any]]:
         """Retrieve immediate children of a known source-asserted identifier."""
-
-        if format not in ["json", "rdf"]:
-            logger.error(
-                "Invalid output format selected. Available types are json, rdf"
-            )
-            return ""
-
-        url = f"{self.base_url}/content/{self.version}/source/{source}/{id}/children"
-        params = {"apiKey": self.api_key}
-        response = requests.get(url, params=params)
-
-        if save_to_file:
-            if file_path == None:
-                file_path = f"source_children_{source}_{id}.txt"
-            else:
-                file_path = os.path.join(
-                    file_path, f"source_children_{source}_{id}.txt"
-                )
-            save_output_to_file(
-                response=self._handle_response(response), file_path=file_path
-            )
-
-        return handle_response_with_format(
-            response=self._handle_response(response),
-            format=format,
+        return self._request_formatted(
+            path=f"/content/{self.version}/source/{source}/{id}/children",
+            output_format=format,
             return_indented=return_indented,
+            save_to_file=save_to_file,
+            file_path=file_path,
+            default_file_name=f"source_children_{source}_{id}.txt",
         )
 
     def get_source_ancestors(
@@ -219,36 +112,17 @@ class SourceAPI(UMLSAPIBase):
         return_indented: bool = True,
         format: str = "json",
         save_to_file: bool = False,
-        file_path: str = None,
+        file_path: Optional[str] = None,
     ) -> Union[str, Dict[str, Any]]:
         """Retrieve all ancestors of a known source-asserted identifier."""
-
-        if format not in ["json", "rdf"]:
-            logger.error(
-                "Invalid output format selected. Available types are json, rdf"
-            )
-            return ""
-
-        url = f"{self.base_url}/content/{self.version}/source/{source}/{id}/ancestors"
-        params = {"apiKey": self.api_key}
-        response = requests.get(url, params=params)
-        logger.info(f"Fetching ancestors for: {source}/{id}")
-
-        if save_to_file:
-            if file_path == None:
-                file_path = f"source_ancestors_{source}_{id}.txt"
-            else:
-                file_path = os.path.join(
-                    file_path, f"source_ancestors_{source}_{id}.txt"
-                )
-            save_output_to_file(
-                response=self._handle_response(response), file_path=file_path
-            )
-
-        return handle_response_with_format(
-            response=self._handle_response(response),
-            format=format,
+        logger.info("Fetching ancestors for: %s/%s", source, id)
+        return self._request_formatted(
+            path=f"/content/{self.version}/source/{source}/{id}/ancestors",
+            output_format=format,
             return_indented=return_indented,
+            save_to_file=save_to_file,
+            file_path=file_path,
+            default_file_name=f"source_ancestors_{source}_{id}.txt",
         )
 
     def get_source_descendants(
@@ -258,36 +132,17 @@ class SourceAPI(UMLSAPIBase):
         return_indented: bool = True,
         format: str = "json",
         save_to_file: bool = False,
-        file_path: str = None,
+        file_path: Optional[str] = None,
     ) -> Union[str, Dict[str, Any]]:
         """Retrieve all descendants of a known source-asserted identifier."""
-
-        if format not in ["json", "rdf"]:
-            logger.error(
-                "Invalid output format selected. Available types are json, rdf"
-            )
-            return ""
-
-        url = f"{self.base_url}/content/{self.version}/source/{source}/{id}/descendants"
-        params = {"apiKey": self.api_key}
-        response = requests.get(url, params=params)
-        logger.info(f"Fetching descendants for: {source}/{id}")
-
-        if save_to_file:
-            if file_path == None:
-                file_path = f"source_descendants_{source}_{id}.txt"
-            else:
-                file_path = os.path.join(
-                    file_path, f"source_descendants_{source}_{id}.txt"
-                )
-            save_output_to_file(
-                response=self._handle_response(response), file_path=file_path
-            )
-
-        return handle_response_with_format(
-            response=self._handle_response(response),
-            format=format,
+        logger.info("Fetching descendants for: %s/%s", source, id)
+        return self._request_formatted(
+            path=f"/content/{self.version}/source/{source}/{id}/descendants",
+            output_format=format,
             return_indented=return_indented,
+            save_to_file=save_to_file,
+            file_path=file_path,
+            default_file_name=f"source_descendants_{source}_{id}.txt",
         )
 
     def get_source_attributes(
@@ -297,34 +152,16 @@ class SourceAPI(UMLSAPIBase):
         return_indented: bool = True,
         format: str = "json",
         save_to_file: bool = False,
-        file_path: str = None,
+        file_path: Optional[str] = None,
     ) -> Union[str, Dict[str, Any]]:
         """Retrieve information about source-asserted attributes."""
-
-        if format not in ["json", "rdf"]:
-            logger.error(
-                "Invalid output format selected. Available types are json, rdf"
-            )
-            return ""
-        url = f"{self.base_url}/content/{self.version}/source/{source}/{id}/attributes"
-        params = {"apiKey": self.api_key}
-        response = requests.get(url, params=params)
-
-        if save_to_file:
-            if file_path == None:
-                file_path = f"source_attributes_{source}_{id}.txt"
-            else:
-                file_path = os.path.join(
-                    file_path, f"source_attributes_{source}_{id}.txt"
-                )
-            save_output_to_file(
-                response=self._handle_response(response), file_path=file_path
-            )
-
-        return handle_response_with_format(
-            response=self._handle_response(response),
-            format=format,
+        return self._request_formatted(
+            path=f"/content/{self.version}/source/{source}/{id}/attributes",
+            output_format=format,
             return_indented=return_indented,
+            save_to_file=save_to_file,
+            file_path=file_path,
+            default_file_name=f"source_attributes_{source}_{id}.txt",
         )
 
     def get_source_relations(
@@ -340,20 +177,10 @@ class SourceAPI(UMLSAPIBase):
         return_indented: bool = True,
         format: str = "json",
         save_to_file: bool = False,
-        file_path: str = None,
+        file_path: Optional[str] = None,
     ) -> Union[str, Dict[str, Any]]:
         """Retrieve relationships for a known source-asserted identifier with optional parameters."""
-
-        url = f"{self.base_url}/content/{self.version}/source/{source}/{id}/relations"
-
-        if format not in ["json", "rdf"]:
-            logger.error(
-                "Invalid output format selected. Available types are json, rdf"
-            )
-            return ""
-
         params = {
-            "apiKey": self.api_key,
             "includeRelationLabels": include_relation_labels,
             "includeAdditionalRelationLabels": include_additional_labels,
             "includeObsolete": str(include_obsolete).lower(),
@@ -362,46 +189,25 @@ class SourceAPI(UMLSAPIBase):
             "pageSize": page_size,
         }
 
-        # Filter out any None values from params
-        params = {k: v for k, v in params.items() if v is not None}
-
-        response = requests.get(url, params=params)
-        logger.info(f"Fetching relations for concept: {source}/{id}")
-
-        if save_to_file:
-            if file_path == None:
-                file_path = f"source_relations_{source}_{id}.txt"
-            else:
-                file_path = os.path.join(
-                    file_path, f"source_relations_{source}_{id}.txt"
-                )
-            save_output_to_file(
-                response=self._handle_response(response), file_path=file_path
-            )
-
-        return handle_response_with_format(
-            response=self._handle_response(response),
-            format=format,
+        logger.info("Fetching relations for concept: %s/%s", source, id)
+        return self._request_formatted(
+            path=f"/content/{self.version}/source/{source}/{id}/relations",
+            params=params,
+            output_format=format,
             return_indented=return_indented,
+            save_to_file=save_to_file,
+            file_path=file_path,
+            default_file_name=f"source_relations_{source}_{id}.txt",
         )
 
     def get_relations_by_url(
         self, relations_url: str, return_indented: bool = True, format: str = "json"
     ) -> Union[str, Dict[str, Any]]:
         """Make a second request to the relations endpoint and retrieve related concepts."""
-
-        if format not in ["json", "rdf"]:
-            logger.error(
-                "Invalid output format selected. Available types are json, rdf"
-            )
-            return ""
-        params = {"apiKey": self.api_key}
-        response = requests.get(relations_url, params=params)
-        logger.info(f"Fetching relations from URL: {relations_url}")
-
-        return handle_response_with_format(
-            response=self._handle_response(response),
-            format=format,
+        logger.info("Fetching relations from URL: %s", relations_url)
+        return self._request_formatted(
+            absolute_url=relations_url,
+            output_format=format,
             return_indented=return_indented,
         )
 
@@ -412,7 +218,7 @@ class SourceAPI(UMLSAPIBase):
         max_depth=2,
         return_indented=True,
         save_to_file: bool = False,
-        file_path: str = None,
+        file_path: Optional[str] = None,
     ) -> Union[str, Dict[str, Any]]:
         """
         Retrieve full parent-child pathways from the root to the concept and its descendants iteratively.
@@ -476,18 +282,16 @@ class SourceAPI(UMLSAPIBase):
                 queue.append((child.get("ui"), depth + 1))
 
         if save_to_file:
-            if file_path == None:
-                file_path = f"concept_pathways_{source}_{id}.txt"
-            else:
-                file_path = os.path.join(
-                    file_path, f"concept_pathways_{source}_{id}.txt"
-                )
-            save_output_to_file(response=pathways, file_path=file_path)
+            save_output_to_file(
+                response=pathways,
+                file_path=self._resolve_file_path(
+                    f"concept_pathways_{source}_{id}.txt", file_path
+                ),
+            )
 
         if return_indented:
             return json.dumps(pathways, indent=4)
-        else:
-            pathways
+        return pathways
 
     def get_related_concepts_by_relation_type(
         self,
@@ -496,7 +300,7 @@ class SourceAPI(UMLSAPIBase):
         relation_type,
         return_indented=True,
         save_to_file: bool = False,
-        file_path: str = None,
+        file_path: Optional[str] = None,
     ):
         """Retrieve related concepts based on the specified relationship type."""
         # Step 1: Fetch the source concept
@@ -537,20 +341,16 @@ class SourceAPI(UMLSAPIBase):
             )
 
         if save_to_file:
-            if file_path == None:
-                file_path = f"related_concepts_by_relation_type_{source}_{id}.txt"
-            else:
-                file_path = os.path.join(
-                    file_path, f"related_concepts_by_relation_type_{source}_{id}.txt"
-                )
             save_output_to_file(
-                response={relation_type: related_concepts}, file_path=file_path
+                response={relation_type: related_concepts},
+                file_path=self._resolve_file_path(
+                    f"related_concepts_by_relation_type_{source}_{id}.txt", file_path
+                ),
             )
 
         if return_indented:
             return json.dumps({relation_type: related_concepts}, indent=4)
-        else:
-            {relation_type: related_concepts}
+        return {relation_type: related_concepts}
 
     # https://www.nlm.nih.gov/research/umls/knowledge_sources/metathesaurus/release/attribute_names.html
     def get_concept_attributes(self, source: str, id: str) -> dict:
@@ -571,7 +371,7 @@ class SourceAPI(UMLSAPIBase):
         id2,
         return_indented=True,
         save_to_file: bool = False,
-        file_path: str = None,
+        file_path: Optional[str] = None,
     ):
         """Compare two concepts by examining their relationships, ancestors, and descendants."""
         concept_1_ancestors = json.loads(self.get_source_ancestors(source, id1)).get(
@@ -626,18 +426,16 @@ class SourceAPI(UMLSAPIBase):
         }
 
         if save_to_file:
-            if file_path == None:
-                file_path = f"compare_concepts_{source}_{id1}_{id2}.txt"
-            else:
-                file_path = os.path.join(
-                    file_path, f"compare_concepts_{source}_{id1}_{id2}.txt"
-                )
-            save_output_to_file(response=comparison, file_path=file_path)
+            save_output_to_file(
+                response=comparison,
+                file_path=self._resolve_file_path(
+                    f"compare_concepts_{source}_{id1}_{id2}.txt", file_path
+                ),
+            )
 
         if return_indented:
             return json.dumps(comparison, indent=4)
-        else:
-            comparison
+        return comparison
 
     def get_concept_coverage(
         self,
@@ -645,7 +443,7 @@ class SourceAPI(UMLSAPIBase):
         id: str,
         return_indented: bool = True,
         save_to_file: bool = False,
-        file_path: str = None,
+        file_path: Optional[str] = None,
     ) -> dict:
         """Check in which medical systems the concept is present."""
         concept_response = self.get_source_concept(source, id)
@@ -654,23 +452,18 @@ class SourceAPI(UMLSAPIBase):
         )
 
         if save_to_file:
-            if file_path == None:
-                file_path = f"concept_coverage_{source}_{id}.txt"
-            else:
-                file_path = os.path.join(
-                    file_path, f"concept_coverage_{source}_{id}.txt"
-                )
             save_output_to_file(
                 response={"concept_id": id, "covered_in_sources": source_systems},
-                file_path=file_path,
+                file_path=self._resolve_file_path(
+                    f"concept_coverage_{source}_{id}.txt", file_path
+                ),
             )
 
         if return_indented:
             return json.dumps(
                 {"concept_id": id, "covered_in_sources": source_systems}, indent=4
             )
-        else:
-            {"concept_id": id, "covered_in_sources": source_systems}
+        return {"concept_id": id, "covered_in_sources": source_systems}
 
     def aggregate_children_by_attribute(
         self,
@@ -679,7 +472,7 @@ class SourceAPI(UMLSAPIBase):
         attribute_name: str,
         return_indented: bool = True,
         save_to_file: bool = False,
-        file_path: str = None,
+        file_path: Optional[str] = None,
     ):
         """Aggregate children of a concept based on a specific attribute."""
         children_response = self.get_source_children(source, id)
@@ -702,13 +495,12 @@ class SourceAPI(UMLSAPIBase):
             )
 
         if save_to_file:
-            if file_path == None:
-                file_path = f"children_by_attribute_{source}_{id}.txt"
-            else:
-                file_path = os.path.join(
-                    file_path, f"children_by_attribute_{source}_{id}.txt"
-                )
-            save_output_to_file(response=attribute_aggregation, file_path=file_path)
+            save_output_to_file(
+                response=attribute_aggregation,
+                file_path=self._resolve_file_path(
+                    f"children_by_attribute_{source}_{id}.txt", file_path
+                ),
+            )
 
         if return_indented:
             return json.dumps(attribute_aggregation, indent=4)
@@ -723,7 +515,7 @@ class SourceAPI(UMLSAPIBase):
         max_depth: int = 3,
         return_indented: bool = True,
         save_to_file: bool = False,
-        file_path: str = None,
+        file_path: Optional[str] = None,
     ):
         """Retrieve a family tree structure with relationships organized in a hierarchy of ancestors and descendants."""
 
@@ -782,11 +574,12 @@ class SourceAPI(UMLSAPIBase):
         fetch_descendants(id, family_tree["descendants"])
 
         if save_to_file:
-            if file_path == None:
-                file_path = f"family_tree_{source}_{id}.txt"
-            else:
-                file_path = os.path.join(file_path, f"family_tree_{source}_{id}.txt")
-            save_output_to_file(response=family_tree, file_path=file_path)
+            save_output_to_file(
+                response=family_tree,
+                file_path=self._resolve_file_path(
+                    f"family_tree_{source}_{id}.txt", file_path
+                ),
+            )
 
         if return_indented:
             return json.dumps(family_tree, indent=4)
@@ -800,7 +593,7 @@ class SourceAPI(UMLSAPIBase):
         depth: int = 0,
         return_indented: bool = True,
         save_to_file: bool = False,
-        file_path: str = None,
+        file_path: Optional[str] = None,
     ) -> str | Dict[str, Any]:
         """Recursively retrieve all ancestors and descendants until root/leaf, with logging.
 
@@ -865,11 +658,12 @@ class SourceAPI(UMLSAPIBase):
 
         # Save to file if required
         if save_to_file:
-            if file_path == None:
-                file_path = f"full_hierarchy_{source}_{id}.txt"
-            else:
-                file_path = os.path.join(file_path, f"full_hierarchy_{source}_{id}.txt")
-            save_output_to_file(response=hierarchy, file_path=file_path)
+            save_output_to_file(
+                response=hierarchy,
+                file_path=self._resolve_file_path(
+                    f"full_hierarchy_{source}_{id}.txt", file_path
+                ),
+            )
 
         # Return the hierarchy in the requested format
         if return_indented:
