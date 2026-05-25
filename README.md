@@ -128,6 +128,33 @@ python -m build
 Live integration tests are optional and must be explicitly enabled by setting
 `UMLS_API_KEY`; default CI uses mocked transports only.
 
+## Releases
+
+This repository uses Release Please to automate versioning and publishing.
+Commits merged to `main` should use Conventional Commit prefixes:
+
+- `fix:` for patch releases
+- `feat:` for minor releases
+- `feat!:` or `fix!:` for major releases
+
+After releasable commits land on `main`, Release Please opens or updates a
+release PR. Merging that release PR creates the GitHub Release, builds the
+package, attaches `dist/` artifacts to the release, and publishes to PyPI.
+
+To publish the already-merged `1.1.0` modernization release, first merge the
+release workflow, configure PyPI trusted publishing, and then run the `Release`
+workflow manually with `tag_name` set to `v1.1.0`. The manual run creates the
+tag and GitHub Release if needed, verifies the package, uploads release
+artifacts, and publishes `1.1.0` to PyPI.
+
+PyPI publishing uses trusted publishing, so no PyPI API token is required in
+GitHub secrets. Configure the PyPI project with:
+
+- Owner: `palasht75`
+- Repository: `umls-python-client`
+- Workflow: `release-please.yml`
+- Environment: `pypi`
+
 ## License
 
 Apache-2.0. See `LICENSE`.
