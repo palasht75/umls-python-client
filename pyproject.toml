@@ -1,0 +1,81 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "umls-python-client"
+version = "1.1.0"
+description = "Production-ready Python client for the NLM UMLS REST APIs."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [
+  {name = "Palash Tiwari"}
+]
+requires-python = ">=3.9"
+dependencies = [
+  "httpx>=0.27.0,<1.0",
+  "rdflib>=7.0.0,<8.0",
+]
+keywords = ["umls", "nlm", "medical-terminology", "api-client", "healthcare"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Healthcare Industry",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Scientific/Engineering :: Medical Science Apps.",
+]
+
+[project.optional-dependencies]
+dev = [
+  "build>=1.2.0",
+  "mypy>=1.10.0,<2.0",
+  "pytest>=8.0.0",
+  "pytest-asyncio>=0.23.0",
+  "ruff>=0.6.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/palasht75/umls-python-client"
+Documentation = "https://palasht75.github.io/umls-python-client-homepage/"
+Issues = "https://github.com/palasht75/umls-python-client/issues"
+Source = "https://github.com/palasht75/umls-python-client"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["umls_python_client*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q -s"
+asyncio_mode = "auto"
+markers = [
+  "live: tests that call the real UMLS API and require UMLS_API_KEY",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.9"
+files = ["src"]
+warn_unused_configs = true
+no_implicit_optional = true
+ignore_missing_imports = true
+check_untyped_defs = true

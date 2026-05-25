@@ -1,3 +1,2 @@
-#https://www.nlm.nih.gov/research/umls/archive/archive_home.html
-rdflib
-requests
+httpx>=0.27.0,<1.0
+rdflib>=7.0.0,<8.0

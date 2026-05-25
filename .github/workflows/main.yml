@@ -1,41 +1,42 @@
-name: Code Formatting Check
+name: CI
 
 on:
   push:
-    branches:
-      - main   # This triggers the action when code is pushed or merged into the 'main' branch
+    branches: ["main"]
+  pull_request:
 
 jobs:
-  format:
-    runs-on: ubuntu-latest   # The action runs on the latest Ubuntu environment
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3  # Checkout the code from your repo
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.11.9"  # Specify the Python version
+          python-version: ${{ matrix.python-version }}
 
-      - name: Install isort and black
+      - name: Install package and dev dependencies
         run: |
-          pip install isort black
+          python -m pip install --upgrade pip
+          python -m pip install ".[dev]"
 
-      - name: Run isort
-        run: |
-          isort .
+      - name: Ruff lint
+        run: ruff check .
 
-      - name: Run black
-        run: |
-          black .
+      - name: Ruff format check
+        run: ruff format --check .
 
-      # Commit and push any changes back to the main branch
-      - name: Commit and push changes
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git add .
-          git diff-index --quiet HEAD || git commit -m "Auto-apply isort and black formatting"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Use the GitHub token to authenticate the push
+      - name: Mypy
+        run: mypy src
+
+      - name: Tests
+        run: pytest
+
+      - name: Build package
+        run: python -m build
