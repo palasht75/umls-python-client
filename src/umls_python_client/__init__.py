@@ -5,11 +5,17 @@ from umls_python_client.errors import (
     UMLSHTTPError,
     UMLSRequestError,
 )
+from umls_python_client.exports import save_payload
 from umls_python_client.models import (
     Atom,
+    Attribute,
     Concept,
+    ConceptProfile,
     Definition,
+    LicenseValidation,
     Relation,
+    ReleaseFile,
+    ReleaseInfo,
     RootSource,
     SearchResult,
     SemanticType,
@@ -20,10 +26,15 @@ from umls_python_client.models import (
 
 __all__ = [
     "AsyncUMLSClient",
+    "Attribute",
     "Atom",
     "Concept",
+    "ConceptProfile",
     "Definition",
+    "LicenseValidation",
     "Relation",
+    "ReleaseFile",
+    "ReleaseInfo",
     "RootSource",
     "SearchResult",
     "SemanticType",
@@ -36,4 +47,5 @@ __all__ = [
     "UMLSRequestError",
     "UMLSResponse",
     "UnknownRecord",
+    "save_payload",
 ]

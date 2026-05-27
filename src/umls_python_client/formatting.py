@@ -33,10 +33,14 @@ def render_payload(
 
 def save_output_to_file(response: Any, file_path: str) -> None:
     """Save response data to a file, creating parent directories as needed."""
-    path = Path(file_path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    content = response if isinstance(response, str) else json.dumps(response, indent=4)
-    path.write_text(content, encoding="utf-8")
+    from umls_python_client.exports import save_payload
+
+    if isinstance(response, str):
+        path = Path(file_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(response, encoding="utf-8")
+        return
+    save_payload(response, file_path, format="json", overwrite=True)
 
 
 def to_rdf(

@@ -20,6 +20,10 @@ def test_existing_import_paths_and_aliases_work(mock_transport) -> None:
     assert client.cui_api is client.cuiAPI
     assert client.semantic_network_api is client.semanticNetworkAPI
     assert client.crosswalk_api is client.crosswalkAPI
+    assert client.metadata_api is client.metadataAPI
+    assert client.atom_api is client.atomAPI
+    assert client.auth_api is client.authAPI
+    assert client.release_api is client.releaseAPI
 
 
 def test_legacy_json_string_default_and_raw_mode(mock_transport) -> None:

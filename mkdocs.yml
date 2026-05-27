@@ -1,0 +1,35 @@
+site_name: UMLS Python Client
+site_description: Production-ready Python SDK for NLM UTS and UMLS APIs.
+site_url: https://palasht75.github.io/umls-python-client/
+repo_url: https://github.com/palasht75/umls-python-client
+repo_name: palasht75/umls-python-client
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.instant
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - Recipes: recipes.md
+  - Endpoint Coverage: endpoint-coverage.md
+  - API Reference: api-reference.md
+  - Releasing: releasing.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: false
+            show_root_heading: true
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true

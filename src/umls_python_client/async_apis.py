@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from typing import Any, Mapping, Optional
+from typing import Any, AsyncIterator, Dict, Iterable, Mapping, Optional
 
 import httpx
 
 from umls_python_client.models import (
     Atom,
+    Attribute,
     Concept,
+    ConceptProfile,
     Definition,
     Relation,
     RootSource,
@@ -100,6 +102,16 @@ class AsyncSearchAPI(AsyncAPIBase):
             model=SearchResult.from_dict,
         )
 
+    async def bulk_search(
+        self,
+        search_strings: Iterable[str],
+        **search_kwargs: Any,
+    ) -> Dict[str, UMLSResponse[SearchResult]]:
+        results: Dict[str, UMLSResponse[SearchResult]] = {}
+        for search_string in search_strings:
+            results[search_string] = await self.search(search_string, **search_kwargs)
+        return results
+
 
 class AsyncCUIAPI(AsyncAPIBase):
     async def get_cui_info(self, cui: str) -> UMLSResponse[Concept]:
@@ -170,6 +182,79 @@ class AsyncCUIAPI(AsyncAPIBase):
             model=Relation.from_dict,
         )
 
+    async def get_concept_profile(
+        self,
+        cui: str,
+        include_atoms: bool = False,
+        include_definitions: bool = True,
+        include_relations: bool = True,
+    ) -> UMLSResponse[ConceptProfile]:
+        profile_payload: Dict[str, Any] = {
+            "concept": _response_payload_result(await self.get_cui_info(cui)),
+            "preferredAtom": _response_payload_result(
+                await self.get_preferred_atom(cui)
+            ),
+            "definitions": [],
+            "relations": [],
+            "atoms": [],
+        }
+        if include_definitions:
+            profile_payload["definitions"] = _response_payload_result(
+                await self.get_definitions(cui)
+            )
+        if include_relations:
+            profile_payload["relations"] = _response_payload_result(
+                await self.get_relations(cui)
+            )
+        if include_atoms:
+            profile_payload["atoms"] = _response_payload_result(
+                await self.get_atoms(cui)
+            )
+        return UMLSResponse(
+            result=ConceptProfile.from_dict(profile_payload),
+            raw={"result": profile_payload},
+        )
+
+    async def iter_definitions(
+        self,
+        cui: str,
+        sabs: Optional[str] = None,
+        page_size: int = 25,
+    ) -> AsyncIterator[Definition]:
+        async for item in _async_iter_paginated(
+            lambda page_number: self.get_definitions(
+                cui,
+                sabs=sabs,
+                page_number=page_number,
+                page_size=page_size,
+            )
+        ):
+            yield item
+
+    async def iter_relations(
+        self,
+        cui: str,
+        sabs: Optional[str] = None,
+        include_relation_labels: Optional[str] = None,
+        include_additional_labels: Optional[str] = None,
+        include_obsolete: bool = False,
+        include_suppressible: bool = False,
+        page_size: int = 200,
+    ) -> AsyncIterator[Relation]:
+        async for item in _async_iter_paginated(
+            lambda page_number: self.get_relations(
+                cui,
+                sabs=sabs,
+                include_relation_labels=include_relation_labels,
+                include_additional_labels=include_additional_labels,
+                include_obsolete=include_obsolete,
+                include_suppressible=include_suppressible,
+                page_number=page_number,
+                page_size=page_size,
+            )
+        ):
+            yield item
+
 
 class AsyncSourceAPI(AsyncAPIBase):
     async def get_source_concept(
@@ -210,24 +295,26 @@ class AsyncSourceAPI(AsyncAPIBase):
         )
 
     async def get_source_parents(
-        self, source: str, id: str, page_size: int = 200
+        self, source: str, id: str, page_number: int = 1, page_size: int = 25
     ) -> UMLSResponse[SourceAtomCluster]:
-        return await self._source_list(source, id, "parents", page_size)
+        return await self._source_list(source, id, "parents", page_number, page_size)
 
     async def get_source_children(
-        self, source: str, id: str, page_size: int = 200
+        self, source: str, id: str, page_number: int = 1, page_size: int = 25
     ) -> UMLSResponse[SourceAtomCluster]:
-        return await self._source_list(source, id, "children", page_size)
+        return await self._source_list(source, id, "children", page_number, page_size)
 
     async def get_source_ancestors(
-        self, source: str, id: str, page_size: int = 200
+        self, source: str, id: str, page_number: int = 1, page_size: int = 200
     ) -> UMLSResponse[SourceAtomCluster]:
-        return await self._source_list(source, id, "ancestors", page_size)
+        return await self._source_list(source, id, "ancestors", page_number, page_size)
 
     async def get_source_descendants(
-        self, source: str, id: str, page_size: int = 200
+        self, source: str, id: str, page_number: int = 1, page_size: int = 200
     ) -> UMLSResponse[SourceAtomCluster]:
-        return await self._source_list(source, id, "descendants", page_size)
+        return await self._source_list(
+            source, id, "descendants", page_number, page_size
+        )
 
     async def get_source_attributes(
         self,
@@ -235,8 +322,8 @@ class AsyncSourceAPI(AsyncAPIBase):
         id: str,
         include_attribute_names: Optional[str] = None,
         page_number: int = 1,
-        page_size: int = 200,
-    ) -> UMLSResponse[Any]:
+        page_size: int = 25,
+    ) -> UMLSResponse[Attribute]:
         return await self._typed(
             path="/content/{0}/source/{1}/{2}/attributes".format(
                 self.version, source, id
@@ -246,6 +333,7 @@ class AsyncSourceAPI(AsyncAPIBase):
                 "pageNumber": page_number,
                 "pageSize": page_size,
             },
+            model=Attribute.from_dict,
         )
 
     async def get_source_relations(
@@ -274,14 +362,56 @@ class AsyncSourceAPI(AsyncAPIBase):
             model=Relation.from_dict,
         )
 
+    async def iter_source_attributes(
+        self,
+        source: str,
+        id: str,
+        include_attribute_names: Optional[str] = None,
+        page_size: int = 25,
+    ) -> AsyncIterator[Attribute]:
+        async for item in _async_iter_paginated(
+            lambda page_number: self.get_source_attributes(
+                source,
+                id,
+                include_attribute_names=include_attribute_names,
+                page_number=page_number,
+                page_size=page_size,
+            )
+        ):
+            yield item
+
+    async def iter_source_relations(
+        self,
+        source: str,
+        id: str,
+        include_relation_labels: Optional[str] = None,
+        include_additional_labels: Optional[str] = None,
+        include_obsolete: bool = False,
+        include_suppressible: bool = False,
+        page_size: int = 200,
+    ) -> AsyncIterator[Relation]:
+        async for item in _async_iter_paginated(
+            lambda page_number: self.get_source_relations(
+                source,
+                id,
+                include_relation_labels=include_relation_labels,
+                include_additional_labels=include_additional_labels,
+                include_obsolete=include_obsolete,
+                include_suppressible=include_suppressible,
+                page_number=page_number,
+                page_size=page_size,
+            )
+        ):
+            yield item
+
     async def _source_list(
-        self, source: str, id: str, suffix: str, page_size: int
+        self, source: str, id: str, suffix: str, page_number: int, page_size: int
     ) -> UMLSResponse[SourceAtomCluster]:
         return await self._typed(
             path="/content/{0}/source/{1}/{2}/{3}".format(
                 self.version, source, id, suffix
             ),
-            params={"pageSize": page_size},
+            params={"pageNumber": page_number, "pageSize": page_size},
             model=SourceAtomCluster.from_dict,
         )
 
@@ -338,6 +468,45 @@ class AsyncCrosswalkAPI(AsyncAPIBase):
             model=SourceAtomCluster.from_dict,
         )
 
+    async def bulk_crosswalk(
+        self,
+        identifiers: Iterable[str],
+        source: str,
+        target_source: Optional[str] = None,
+        include_obsolete: bool = False,
+        page_size: int = 25,
+    ) -> Dict[str, UMLSResponse[SourceAtomCluster]]:
+        results: Dict[str, UMLSResponse[SourceAtomCluster]] = {}
+        for identifier in identifiers:
+            results[identifier] = await self.get_crosswalk(
+                source,
+                identifier,
+                target_source=target_source,
+                include_obsolete=include_obsolete,
+                page_size=page_size,
+            )
+        return results
+
+    async def iter_crosswalk(
+        self,
+        source: str,
+        id: str,
+        target_source: Optional[str] = None,
+        include_obsolete: bool = False,
+        page_size: int = 25,
+    ) -> AsyncIterator[SourceAtomCluster]:
+        async for item in _async_iter_paginated(
+            lambda page_number: self.get_crosswalk(
+                source,
+                id,
+                target_source=target_source,
+                include_obsolete=include_obsolete,
+                page_number=page_number,
+                page_size=page_size,
+            )
+        ):
+            yield item
+
 
 class AsyncSemanticNetworkAPI(AsyncAPIBase):
     async def get_semantic_type(self, tui: str) -> UMLSResponse[SemanticType]:
@@ -354,6 +523,86 @@ class AsyncMetadataAPI(AsyncAPIBase):
             model=RootSource.from_dict,
             auth_required=False,
         )
+
+    async def find_source(
+        self,
+        abbreviation: Optional[str] = None,
+        name: Optional[str] = None,
+    ) -> UMLSResponse[RootSource]:
+        response = await self.get_sources()
+        sources = _response_result_list(response)
+        matched = [
+            source
+            for source in sources
+            if isinstance(source, RootSource)
+            and _source_matches(
+                source.to_dict(),
+                abbreviation=abbreviation,
+                name=name,
+            )
+        ]
+        return UMLSResponse(
+            result=matched,
+            raw={"result": [source.to_dict() for source in matched]},
+            page_size=len(matched),
+            page_number=1,
+            page_count=1,
+        )
+
+
+def _payload_result(value: Mapping[str, Any]) -> Any:
+    result = value.get("result")
+    if isinstance(result, Mapping) and isinstance(result.get("results"), list):
+        return result["results"]
+    return result
+
+
+def _response_payload_result(response: UMLSResponse[Any]) -> Any:
+    return _payload_result(response.to_dict())
+
+
+def _response_result_list(response: UMLSResponse[Any]) -> list[Any]:
+    result = response.result
+    if isinstance(result, list):
+        return result
+    if result is None:
+        return []
+    return [result]
+
+
+async def _async_iter_paginated(fetch_page: Any) -> AsyncIterator[Any]:
+    page_number = 1
+    while True:
+        response = await fetch_page(page_number)
+        for item in _response_result_list(response):
+            yield item
+        if not response.page_count or page_number >= response.page_count:
+            break
+        page_number += 1
+
+
+def _source_matches(
+    source: Mapping[str, Any],
+    abbreviation: Optional[str],
+    name: Optional[str],
+) -> bool:
+    if abbreviation is None and name is None:
+        return True
+    if abbreviation is not None:
+        source_abbreviation = source.get("abbreviation")
+        if (
+            isinstance(source_abbreviation, str)
+            and source_abbreviation.lower() == abbreviation.lower()
+        ):
+            return True
+    if name is None:
+        return False
+    needle = name.lower()
+    for key in ("preferredName", "expandedForm", "shortName", "family"):
+        value = source.get(key)
+        if isinstance(value, str) and needle in value.lower():
+            return True
+    return False
 
 
 def _atom_params(

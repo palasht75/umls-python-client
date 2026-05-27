@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Optional
+from pathlib import Path
+from typing import Any, Optional, Union
 
 import httpx
 
@@ -29,7 +30,18 @@ from umls_python_client.async_apis import (
     AsyncSemanticNetworkAPI,
     AsyncSourceAPI,
 )
+from umls_python_client.async_uts_apis import AsyncAuthAPI, AsyncReleaseAPI
+from umls_python_client.errors import UMLSError
+from umls_python_client.exports import save_payload
+from umls_python_client.formatting import render_payload
+from umls_python_client.models import UMLSResponse
 from umls_python_client.transport import AsyncUMLSTransport, SyncUMLSTransport
+from umls_python_client.uts_apis import (
+    AuthAPI,
+    ReleaseAPI,
+    TypedAuthAPI,
+    TypedReleaseAPI,
+)
 
 
 class UMLSClient:
@@ -62,12 +74,53 @@ class UMLSClient:
         self.crosswalk_api = CrosswalkAPI(version=version, transport=self._transport)
         self.metadata_api = MetadataAPI(version=version, transport=self._transport)
         self.atom_api = AtomAPI(version=version, transport=self._transport)
+        self.auth_api = AuthAPI(version=version, transport=self._transport)
+        self.release_api = ReleaseAPI(version=version, transport=self._transport)
 
         self.searchAPI = self.search_api
         self.sourceAPI = self.source_api
         self.cuiAPI = self.cui_api
         self.semanticNetworkAPI = self.semantic_network_api
         self.crosswalkAPI = self.crosswalk_api
+        self.metadataAPI = self.metadata_api
+        self.atomAPI = self.atom_api
+        self.authAPI = self.auth_api
+        self.releaseAPI = self.release_api
+
+    def export(
+        self,
+        response_or_payload: Any,
+        path: Union[str, Path],
+        format: str = "json",
+        overwrite: bool = False,
+    ) -> Path:
+        return save_payload(
+            response_or_payload,
+            path,
+            format=format,
+            overwrite=overwrite,
+        )
+
+    def follow_url(
+        self,
+        url: str,
+        return_indented: bool = True,
+        format: str = "json",
+        save_to_file: bool = False,
+        file_path: Optional[str] = None,
+    ) -> Any:
+        try:
+            payload = self._transport.request(absolute_url=url)
+        except UMLSError as exc:
+            payload = exc.to_dict()
+        if save_to_file:
+            save_payload(
+                payload,
+                file_path or "umls_follow_url.txt",
+                format="json",
+                overwrite=True,
+            )
+        return render_payload(payload, format, return_indented)
 
     def close(self) -> None:
         self._transport.close()
@@ -111,6 +164,26 @@ class TypedUMLSClient:
         )
         self.metadata_api = TypedMetadataAPI(version=version, transport=self._transport)
         self.atom_api = TypedAtomAPI(version=version, transport=self._transport)
+        self.auth_api = TypedAuthAPI(version=version, transport=self._transport)
+        self.release_api = TypedReleaseAPI(version=version, transport=self._transport)
+
+    def export(
+        self,
+        response_or_payload: Any,
+        path: Union[str, Path],
+        format: str = "json",
+        overwrite: bool = False,
+    ) -> Path:
+        return save_payload(
+            response_or_payload,
+            path,
+            format=format,
+            overwrite=overwrite,
+        )
+
+    def follow_url(self, url: str) -> UMLSResponse[Any]:
+        payload = self._transport.request(absolute_url=url)
+        return UMLSResponse.from_payload(payload)
 
     def close(self) -> None:
         self._transport.close()
@@ -154,6 +227,26 @@ class AsyncUMLSClient:
         )
         self.metadata_api = AsyncMetadataAPI(version=version, transport=self._transport)
         self.atom_api = AsyncAtomAPI(version=version, transport=self._transport)
+        self.auth_api = AsyncAuthAPI(version=version, transport=self._transport)
+        self.release_api = AsyncReleaseAPI(version=version, transport=self._transport)
+
+    def export(
+        self,
+        response_or_payload: Any,
+        path: Union[str, Path],
+        format: str = "json",
+        overwrite: bool = False,
+    ) -> Path:
+        return save_payload(
+            response_or_payload,
+            path,
+            format=format,
+            overwrite=overwrite,
+        )
+
+    async def follow_url(self, url: str) -> UMLSResponse[Any]:
+        payload = await self._transport.request(absolute_url=url)
+        return UMLSResponse.from_payload(payload)
 
     async def aclose(self) -> None:
         await self._transport.aclose()

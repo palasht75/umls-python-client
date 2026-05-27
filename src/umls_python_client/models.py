@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, Generic, List, Mapping, Optional, TypeVar
+from pathlib import Path
+from typing import Any, Callable, Dict, Generic, List, Mapping, Optional, TypeVar, Union
 
 T = TypeVar("T")
 
@@ -15,6 +16,14 @@ def _get(data: Mapping[str, Any], *names: str) -> Any:
         if name in data:
             return data[name]
     return None
+
+
+def _to_bool(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in {"true", "valid", "1", "yes"}
+    return bool(value)
 
 
 @dataclass
@@ -165,6 +174,26 @@ class Relation(Record):
 
 
 @dataclass
+class Attribute(Record):
+    ui: Optional[str] = None
+    source_ui: Optional[str] = None
+    root_source: Optional[str] = None
+    name: Optional[str] = None
+    value: Optional[str] = None
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> "Attribute":
+        return cls(
+            raw=_as_dict(data),
+            ui=_get(data, "ui"),
+            source_ui=_get(data, "sourceUi"),
+            root_source=_get(data, "rootSource"),
+            name=_get(data, "name"),
+            value=_get(data, "value"),
+        )
+
+
+@dataclass
 class SemanticType(Record):
     ui: Optional[str] = None
     name: Optional[str] = None
@@ -204,6 +233,110 @@ class RootSource(Record):
         )
 
 
+@dataclass
+class LicenseValidation(Record):
+    valid: bool = False
+    status_code: Optional[int] = None
+    message: Optional[str] = None
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> "LicenseValidation":
+        valid = _get(data, "valid", "isValid")
+        return cls(
+            raw=_as_dict(data),
+            valid=_to_bool(valid),
+            status_code=_get(data, "statusCode", "status_code"),
+            message=_get(data, "message", "detail"),
+        )
+
+
+@dataclass
+class ReleaseFile(Record):
+    name: Optional[str] = None
+    release_type: Optional[str] = None
+    url: Optional[str] = None
+    published_date: Optional[str] = None
+    product: Optional[str] = None
+    release_version: Optional[str] = None
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> "ReleaseFile":
+        return cls(
+            raw=_as_dict(data),
+            name=_get(data, "name", "fileName", "filename"),
+            release_type=_get(data, "releaseType", "type"),
+            url=_get(data, "url", "downloadUrl", "downloadURL"),
+            published_date=_get(data, "publishedDate", "releaseDate", "date"),
+            product=_get(data, "product"),
+            release_version=_get(data, "releaseVersion", "version"),
+        )
+
+
+@dataclass
+class ReleaseInfo(Record):
+    name: Optional[str] = None
+    release_type: Optional[str] = None
+    current: Optional[bool] = None
+    url: Optional[str] = None
+    product: Optional[str] = None
+    endpoint: Optional[str] = None
+    file_name: Optional[str] = None
+    release_version: Optional[str] = None
+    release_date: Optional[str] = None
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> "ReleaseInfo":
+        return cls(
+            raw=_as_dict(data),
+            name=_get(data, "name", "releaseName", "fileName", "releaseType"),
+            release_type=_get(data, "releaseType", "type"),
+            current=_to_bool(_get(data, "current", "isCurrent")),
+            url=_get(data, "url", "downloadUrl", "downloadURL", "endpoint"),
+            product=_get(data, "product"),
+            endpoint=_get(data, "endpoint"),
+            file_name=_get(data, "fileName", "filename"),
+            release_version=_get(data, "releaseVersion", "version"),
+            release_date=_get(data, "releaseDate", "publishedDate", "date"),
+        )
+
+
+@dataclass
+class ConceptProfile(Record):
+    concept: Optional[Concept] = None
+    preferred_atom: Optional[Atom] = None
+    definitions: List[Definition] = field(default_factory=list)
+    relations: List[Relation] = field(default_factory=list)
+    atoms: List[Atom] = field(default_factory=list)
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any]) -> "ConceptProfile":
+        concept = data.get("concept")
+        preferred_atom = data.get("preferredAtom") or data.get("preferred_atom")
+        definitions = data.get("definitions") or []
+        relations = data.get("relations") or []
+        atoms = data.get("atoms") or []
+        return cls(
+            raw=_as_dict(data),
+            concept=Concept.from_dict(concept)
+            if isinstance(concept, Mapping)
+            else None,
+            preferred_atom=Atom.from_dict(preferred_atom)
+            if isinstance(preferred_atom, Mapping)
+            else None,
+            definitions=[
+                Definition.from_dict(item)
+                for item in definitions
+                if isinstance(item, Mapping)
+            ],
+            relations=[
+                Relation.from_dict(item)
+                for item in relations
+                if isinstance(item, Mapping)
+            ],
+            atoms=[Atom.from_dict(item) for item in atoms if isinstance(item, Mapping)],
+        )
+
+
 RecordFactory = Callable[[Mapping[str, Any]], T]
 
 
@@ -225,6 +358,8 @@ class UMLSResponse(Generic[T]):
     ) -> "UMLSResponse[T]":
         raw = _as_dict(payload)
         result = raw.get("result")
+        if result is None and isinstance(raw.get("releaseTypes"), list):
+            result = raw["releaseTypes"]
         parsed: Any
 
         if isinstance(result, list):
@@ -252,6 +387,16 @@ class UMLSResponse(Generic[T]):
 
         return to_rdf(self.raw)
 
+    def save(
+        self,
+        path: Union[str, Path],
+        format: str = "json",
+        overwrite: bool = False,
+    ) -> Path:
+        from umls_python_client.exports import save_payload
+
+        return save_payload(self, path, format=format, overwrite=overwrite)
+
 
 def _parse_item(
     item: Any,
@@ -276,6 +421,8 @@ def model_for_class_type(data: Mapping[str, Any]) -> type[Record]:
         return Definition
     if class_type in {"ConceptRelation", "AtomClusterRelation", "AtomRelation"}:
         return Relation
+    if class_type == "Attribute":
+        return Attribute
     if class_type in {"SemanticType", "SemanticNetworkRelation"}:
         return SemanticType
     if class_type == "RootSource":
