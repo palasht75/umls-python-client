@@ -26,6 +26,12 @@ def _to_bool(value: Any) -> bool:
     return bool(value)
 
 
+def _to_optional_bool(value: Any) -> Optional[bool]:
+    if value is None:
+        return None
+    return _to_bool(value)
+
+
 @dataclass
 class Record:
     """Base record with unknown-field preservation."""
@@ -290,7 +296,7 @@ class ReleaseInfo(Record):
             raw=_as_dict(data),
             name=_get(data, "name", "releaseName", "fileName", "releaseType"),
             release_type=_get(data, "releaseType", "type"),
-            current=_to_bool(_get(data, "current", "isCurrent")),
+            current=_to_optional_bool(_get(data, "current", "isCurrent")),
             url=_get(data, "url", "downloadUrl", "downloadURL", "endpoint"),
             product=_get(data, "product"),
             endpoint=_get(data, "endpoint"),
@@ -349,12 +355,14 @@ class UMLSResponse(Generic[T]):
     page_size: Optional[int] = None
     page_number: Optional[int] = None
     page_count: Optional[int] = None
+    request_metadata: Optional[Dict[str, Any]] = None
 
     @classmethod
     def from_payload(
         cls,
         payload: Mapping[str, Any],
         model: Optional[RecordFactory[T]] = None,
+        request_metadata: Optional[Mapping[str, Any]] = None,
     ) -> "UMLSResponse[T]":
         raw = _as_dict(payload)
         result = raw.get("result")
@@ -377,6 +385,9 @@ class UMLSResponse(Generic[T]):
             page_size=_get(raw, "pageSize"),
             page_number=_get(raw, "pageNumber"),
             page_count=_get(raw, "pageCount"),
+            request_metadata=_as_dict(request_metadata)
+            if request_metadata is not None
+            else None,
         )
 
     def to_dict(self) -> Dict[str, Any]:

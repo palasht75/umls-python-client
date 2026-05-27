@@ -4,6 +4,7 @@ import asyncio
 import logging
 import time
 from typing import Any, Dict, Mapping, Optional
+from urllib.parse import urlparse
 
 import httpx
 
@@ -13,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_BASE_URL = "https://uts-ws.nlm.nih.gov/rest"
 RETRY_STATUSES = {429, 500, 502, 503, 504}
+TRUSTED_AUTH_HOSTS = {"uts-ws.nlm.nih.gov"}
+SENSITIVE_METADATA_PARAMS = {"apikey", "validatorapikey"}
 
 
 def clean_params(params: Optional[Mapping[str, Any]]) -> Dict[str, Any]:
@@ -29,6 +32,27 @@ def clean_params(params: Optional[Mapping[str, Any]]) -> Dict[str, Any]:
         else:
             cleaned[key] = value
     return cleaned
+
+
+def request_metadata(
+    *,
+    path: Optional[str] = None,
+    absolute_url: Optional[str] = None,
+    params: Optional[Mapping[str, Any]] = None,
+) -> Dict[str, Any]:
+    metadata: Dict[str, Any] = {}
+    if path is not None:
+        metadata["path"] = path
+    if absolute_url is not None:
+        metadata["absolute_url"] = absolute_url
+    cleaned_params = {
+        key: value
+        for key, value in clean_params(params).items()
+        if key.lower() not in SENSITIVE_METADATA_PARAMS
+    }
+    if cleaned_params:
+        metadata["params"] = cleaned_params
+    return metadata
 
 
 class SyncUMLSTransport:
@@ -69,9 +93,12 @@ class SyncUMLSTransport:
         params: Optional[Mapping[str, Any]] = None,
         absolute_url: Optional[str] = None,
         auth_required: bool = True,
+        follow_redirects: bool = False,
     ) -> Dict[str, Any]:
         return _decode_response(
-            self._request_response(path, params, absolute_url, auth_required)
+            self._request_response(
+                path, params, absolute_url, auth_required, follow_redirects
+            )
         )
 
     def request_text(
@@ -80,8 +107,11 @@ class SyncUMLSTransport:
         params: Optional[Mapping[str, Any]] = None,
         absolute_url: Optional[str] = None,
         auth_required: bool = True,
+        follow_redirects: bool = False,
     ) -> str:
-        response = self._request_response(path, params, absolute_url, auth_required)
+        response = self._request_response(
+            path, params, absolute_url, auth_required, follow_redirects
+        )
         if response.status_code >= 400:
             raise UMLSHTTPError(
                 status_code=response.status_code,
@@ -96,8 +126,11 @@ class SyncUMLSTransport:
         params: Optional[Mapping[str, Any]] = None,
         absolute_url: Optional[str] = None,
         auth_required: bool = True,
+        follow_redirects: bool = False,
     ) -> bytes:
-        response = self._request_response(path, params, absolute_url, auth_required)
+        response = self._request_response(
+            path, params, absolute_url, auth_required, follow_redirects
+        )
         if response.status_code >= 400:
             raise UMLSHTTPError(
                 status_code=response.status_code,
@@ -112,18 +145,24 @@ class SyncUMLSTransport:
         params: Optional[Mapping[str, Any]],
         absolute_url: Optional[str],
         auth_required: bool,
+        follow_redirects: bool,
     ) -> httpx.Response:
         if bool(path) == bool(absolute_url):
             raise ValueError("Provide exactly one of path or absolute_url.")
         request_params = clean_params(params)
-        if auth_required:
-            request_params["apiKey"] = self.api_key
         url = absolute_url or _normalize_path(path)
+        if auth_required:
+            _validate_authenticated_absolute_url(absolute_url, self.base_url)
+            request_params["apiKey"] = self.api_key
 
         last_exc: Optional[httpx.RequestError] = None
         for attempt in range(self.retries + 1):
             try:
-                response = self.client.get(url, params=request_params)
+                response = self.client.get(
+                    url,
+                    params=request_params,
+                    follow_redirects=follow_redirects,
+                )
             except httpx.RequestError as exc:
                 last_exc = exc
                 if attempt == self.retries:
@@ -181,9 +220,12 @@ class AsyncUMLSTransport:
         params: Optional[Mapping[str, Any]] = None,
         absolute_url: Optional[str] = None,
         auth_required: bool = True,
+        follow_redirects: bool = False,
     ) -> Dict[str, Any]:
         return _decode_response(
-            await self._request_response(path, params, absolute_url, auth_required)
+            await self._request_response(
+                path, params, absolute_url, auth_required, follow_redirects
+            )
         )
 
     async def request_text(
@@ -192,9 +234,10 @@ class AsyncUMLSTransport:
         params: Optional[Mapping[str, Any]] = None,
         absolute_url: Optional[str] = None,
         auth_required: bool = True,
+        follow_redirects: bool = False,
     ) -> str:
         response = await self._request_response(
-            path, params, absolute_url, auth_required
+            path, params, absolute_url, auth_required, follow_redirects
         )
         if response.status_code >= 400:
             raise UMLSHTTPError(
@@ -210,9 +253,10 @@ class AsyncUMLSTransport:
         params: Optional[Mapping[str, Any]] = None,
         absolute_url: Optional[str] = None,
         auth_required: bool = True,
+        follow_redirects: bool = False,
     ) -> bytes:
         response = await self._request_response(
-            path, params, absolute_url, auth_required
+            path, params, absolute_url, auth_required, follow_redirects
         )
         if response.status_code >= 400:
             raise UMLSHTTPError(
@@ -228,18 +272,24 @@ class AsyncUMLSTransport:
         params: Optional[Mapping[str, Any]],
         absolute_url: Optional[str],
         auth_required: bool,
+        follow_redirects: bool,
     ) -> httpx.Response:
         if bool(path) == bool(absolute_url):
             raise ValueError("Provide exactly one of path or absolute_url.")
         request_params = clean_params(params)
-        if auth_required:
-            request_params["apiKey"] = self.api_key
         url = absolute_url or _normalize_path(path)
+        if auth_required:
+            _validate_authenticated_absolute_url(absolute_url, self.base_url)
+            request_params["apiKey"] = self.api_key
 
         last_exc: Optional[httpx.RequestError] = None
         for attempt in range(self.retries + 1):
             try:
-                response = await self.client.get(url, params=request_params)
+                response = await self.client.get(
+                    url,
+                    params=request_params,
+                    follow_redirects=follow_redirects,
+                )
             except httpx.RequestError as exc:
                 last_exc = exc
                 if attempt == self.retries:
@@ -263,6 +313,27 @@ def _normalize_path(path: Optional[str]) -> str:
     if path is None:
         raise ValueError("path is required.")
     return "/" + path.lstrip("/")
+
+
+def _validate_authenticated_absolute_url(
+    absolute_url: Optional[str],
+    base_url: str,
+) -> None:
+    if absolute_url is None:
+        return
+
+    host = urlparse(absolute_url).hostname
+    base_host = urlparse(base_url).hostname
+    allowed_hosts = {
+        allowed_host.lower()
+        for allowed_host in (base_host, *TRUSTED_AUTH_HOSTS)
+        if allowed_host
+    }
+    if not host or host.lower() not in allowed_hosts:
+        display_host = host or "unknown host"
+        raise UMLSRequestError(
+            "Refusing to send UMLS API key to untrusted host: {0}.".format(display_host)
+        )
 
 
 def _decode_response(response: httpx.Response) -> Dict[str, Any]:

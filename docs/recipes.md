@@ -49,6 +49,9 @@ print(profile.concept.name)
 print([definition.value for definition in profile.definitions])
 ```
 
+Profiles fetch all documented definition and relation pages by default. Use
+`all_pages=False` when you only want the first page.
+
 ## Metadata Lookup
 
 ```python
@@ -64,6 +67,9 @@ manually rebuilding request parameters:
 concept = client.cui_api.get_cui_info("C0011849").result
 atoms = client.follow_url(concept.raw["atoms"])
 ```
+
+The client only attaches your API key to trusted UMLS/UTS hosts when following
+absolute URLs.
 
 ## Release Downloads
 

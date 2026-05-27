@@ -5,6 +5,7 @@ from typing import Any, Optional, Union
 
 from umls_python_client.async_apis import AsyncAPIBase
 from umls_python_client.models import LicenseValidation, ReleaseInfo, UMLSResponse
+from umls_python_client.transport import request_metadata
 from umls_python_client.uts_apis import (
     AUTH_VALIDATE_URL,
     DOWNLOAD_URL,
@@ -21,18 +22,23 @@ class AsyncAuthAPI(AsyncAPIBase):
         user_api_key: Optional[str] = None,
         validator_api_key: Optional[str] = None,
     ) -> UMLSResponse[LicenseValidation]:
+        params = {
+            "validatorApiKey": validator_api_key or self.api_key,
+            "apiKey": user_api_key or self.api_key,
+        }
         text = await self._transport.request_text(
             absolute_url=AUTH_VALIDATE_URL,
-            params={
-                "validatorApiKey": validator_api_key or self.api_key,
-                "apiKey": user_api_key or self.api_key,
-            },
+            params=params,
             auth_required=False,
         )
         payload = _validation_payload_from_text(text)
         return UMLSResponse.from_payload(
             {"result": payload},
             model=LicenseValidation.from_dict,
+            request_metadata=request_metadata(
+                absolute_url=AUTH_VALIDATE_URL,
+                params=params,
+            ),
         )
 
     async def validate_api_key(
@@ -52,14 +58,19 @@ class AsyncReleaseAPI(AsyncAPIBase):
         release_type: Optional[str] = None,
         current: Optional[bool] = None,
     ) -> UMLSResponse[ReleaseInfo]:
+        params = {"releaseType": release_type, "current": current}
         payload = await self._transport.request(
             absolute_url=RELEASES_URL,
-            params={"releaseType": release_type, "current": current},
+            params=params,
             auth_required=False,
         )
         return UMLSResponse.from_payload(
             _normalize_release_payload(payload),
             model=ReleaseInfo.from_dict,
+            request_metadata=request_metadata(
+                absolute_url=RELEASES_URL,
+                params=params,
+            ),
         )
 
     async def get_releases(self, **kwargs: Any) -> UMLSResponse[ReleaseInfo]:
@@ -79,6 +90,7 @@ class AsyncReleaseAPI(AsyncAPIBase):
             absolute_url=DOWNLOAD_URL,
             params={"url": url},
             auth_required=True,
+            follow_redirects=True,
         )
         target.write_bytes(content)
         return target

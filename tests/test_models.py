@@ -2,7 +2,13 @@ from __future__ import annotations
 
 import httpx
 
-from umls_python_client import Concept, TypedUMLSClient, UMLSResponse, UnknownRecord
+from umls_python_client import (
+    Concept,
+    ReleaseInfo,
+    TypedUMLSClient,
+    UMLSResponse,
+    UnknownRecord,
+)
 from umls_python_client.models import model_for_class_type
 
 
@@ -38,6 +44,12 @@ def test_unknown_model_preserves_unknown_fields() -> None:
 
     assert isinstance(record, UnknownRecord)
     assert record.to_dict()["customField"] == "value"
+
+
+def test_release_info_current_preserves_unknown_state() -> None:
+    assert ReleaseInfo.from_dict({"releaseType": "UMLS"}).current is None
+    assert ReleaseInfo.from_dict({"current": True}).current is True
+    assert ReleaseInfo.from_dict({"current": "false"}).current is False
 
 
 def test_typed_client_raises_structured_errors() -> None:

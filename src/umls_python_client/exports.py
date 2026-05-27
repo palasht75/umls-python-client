@@ -4,6 +4,7 @@ import csv
 import json
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence, Union
+from urllib.parse import urlparse
 
 VALID_EXPORT_FORMATS = {"json", "jsonl", "csv", "rdf"}
 _EXTENSIONS = {
@@ -24,6 +25,7 @@ def save_payload(
 ) -> Path:
     """Save a UMLS payload or response object to disk."""
     output_format = _normalize_format(format)
+    default_stem = _default_stem(payload, default_stem)
     target = _resolve_output_path(Path(path), output_format, default_stem)
     if target.exists() and not overwrite:
         raise FileExistsError("{0} already exists.".format(target))
@@ -152,4 +154,51 @@ def _safe_stem(value: str) -> str:
     stem = "".join(
         char if char.isalnum() or char in {"-", "_"} else "_" for char in value
     ).strip("_")
+    if len(stem) > 160:
+        stem = stem[:160].rstrip("_")
     return stem or "umls_response"
+
+
+def _default_stem(payload: Any, fallback: str) -> str:
+    metadata = getattr(payload, "request_metadata", None)
+    if isinstance(metadata, Mapping):
+        stem = _stem_from_metadata(metadata)
+        if stem:
+            return stem
+    return fallback
+
+
+def _stem_from_metadata(metadata: Mapping[str, Any]) -> str:
+    parts: list[str] = []
+    source = metadata.get("path") or metadata.get("absolute_url")
+    if isinstance(source, str):
+        parsed = urlparse(source)
+        source_path = parsed.path if parsed.scheme or parsed.netloc else source
+        parts.extend(
+            segment
+            for segment in source_path.split("/")
+            if segment and segment != "rest"
+        )
+
+    params = metadata.get("params")
+    if isinstance(params, Mapping):
+        preferred_keys = (
+            "string",
+            "ui",
+            "id",
+            "source",
+            "targetSource",
+            "releaseType",
+        )
+        keys = [key for key in preferred_keys if key in params] + [
+            key for key in sorted(params) if key not in preferred_keys
+        ]
+        for key in keys:
+            if key.lower() in {"apikey", "validatorapikey"}:
+                continue
+            value = params[key]
+            if value is None or value == "":
+                continue
+            parts.append("{0}_{1}".format(key, value))
+
+    return "_".join(str(part) for part in parts)

@@ -35,7 +35,11 @@ from umls_python_client.errors import UMLSError
 from umls_python_client.exports import save_payload
 from umls_python_client.formatting import render_payload
 from umls_python_client.models import UMLSResponse
-from umls_python_client.transport import AsyncUMLSTransport, SyncUMLSTransport
+from umls_python_client.transport import (
+    AsyncUMLSTransport,
+    SyncUMLSTransport,
+    request_metadata,
+)
 from umls_python_client.uts_apis import (
     AuthAPI,
     ReleaseAPI,
@@ -183,7 +187,10 @@ class TypedUMLSClient:
 
     def follow_url(self, url: str) -> UMLSResponse[Any]:
         payload = self._transport.request(absolute_url=url)
-        return UMLSResponse.from_payload(payload)
+        return UMLSResponse.from_payload(
+            payload,
+            request_metadata=request_metadata(absolute_url=url),
+        )
 
     def close(self) -> None:
         self._transport.close()
@@ -246,7 +253,10 @@ class AsyncUMLSClient:
 
     async def follow_url(self, url: str) -> UMLSResponse[Any]:
         payload = await self._transport.request(absolute_url=url)
-        return UMLSResponse.from_payload(payload)
+        return UMLSResponse.from_payload(
+            payload,
+            request_metadata=request_metadata(absolute_url=url),
+        )
 
     async def aclose(self) -> None:
         await self._transport.aclose()

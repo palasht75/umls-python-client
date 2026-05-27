@@ -26,6 +26,43 @@ def test_transport_injects_api_key_and_params() -> None:
     assert seen[0].url.params["string"] == "diabetes"
 
 
+def test_transport_allows_authenticated_umls_absolute_urls() -> None:
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return httpx.Response(200, json={"result": {"ui": "C1"}})
+
+    transport = SyncUMLSTransport(
+        api_key="secret",
+        transport=httpx.MockTransport(handler),
+    )
+
+    transport.request(
+        absolute_url="https://uts-ws.nlm.nih.gov/rest/content/current/CUI/C1"
+    )
+
+    assert seen[0].url.params["apiKey"] == "secret"
+
+
+def test_transport_rejects_authenticated_untrusted_absolute_urls() -> None:
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return httpx.Response(200, json={"result": []})
+
+    transport = SyncUMLSTransport(
+        api_key="secret",
+        transport=httpx.MockTransport(handler),
+    )
+
+    with pytest.raises(UMLSRequestError):
+        transport.request(absolute_url="https://example.com/steal")
+
+    assert seen == []
+
+
 def test_transport_retries_retryable_status() -> None:
     calls = 0
 
