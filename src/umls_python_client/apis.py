@@ -22,7 +22,7 @@ from umls_python_client.models import (
     SourceAtomCluster,
     UMLSResponse,
 )
-from umls_python_client.transport import SyncUMLSTransport
+from umls_python_client.transport import SyncUMLSTransport, request_metadata
 
 logger = logging.getLogger(__name__)
 
@@ -144,7 +144,15 @@ class UMLSAPIBase:
             absolute_url=absolute_url,
             auth_required=auth_required,
         )
-        return UMLSResponse.from_payload(payload, model=model)
+        return UMLSResponse.from_payload(
+            payload,
+            model=model,
+            request_metadata=request_metadata(
+                path=path,
+                absolute_url=absolute_url,
+                params=params,
+            ),
+        )
 
     def close(self) -> None:
         if self._owns_transport:
@@ -404,6 +412,10 @@ class CUIAPI(UMLSAPIBase):
         format: str = "json",
         save_to_file: bool = False,
         file_path: Optional[str] = None,
+        *,
+        all_pages: bool = True,
+        definitions_page_size: int = 25,
+        relations_page_size: int = 25,
     ) -> Any:
         payload: Dict[str, Any] = {
             "result": {
@@ -420,13 +432,41 @@ class CUIAPI(UMLSAPIBase):
         }
         result = payload["result"]
         if include_definitions:
-            result["definitions"] = _result_list(
-                self.get_definitions(cui, return_indented=False)
-            )
+            if all_pages:
+                result["definitions"] = _legacy_paginated_result_list(
+                    lambda page_number: self.get_definitions(
+                        cui,
+                        page_number=page_number,
+                        page_size=definitions_page_size,
+                        return_indented=False,
+                    )
+                )
+            else:
+                result["definitions"] = _result_list(
+                    self.get_definitions(
+                        cui,
+                        page_size=definitions_page_size,
+                        return_indented=False,
+                    )
+                )
         if include_relations:
-            result["relations"] = _result_list(
-                self.get_relations(cui, return_indented=False)
-            )
+            if all_pages:
+                result["relations"] = _legacy_paginated_result_list(
+                    lambda page_number: self.get_relations(
+                        cui,
+                        page_number=page_number,
+                        page_size=relations_page_size,
+                        return_indented=False,
+                    )
+                )
+            else:
+                result["relations"] = _result_list(
+                    self.get_relations(
+                        cui,
+                        page_size=relations_page_size,
+                        return_indented=False,
+                    )
+                )
         if include_atoms:
             result["atoms"] = _result_list(self.get_atoms(cui, return_indented=False))
         if save_to_file:
@@ -514,6 +554,10 @@ class TypedCUIAPI(UMLSAPIBase):
         include_atoms: bool = False,
         include_definitions: bool = True,
         include_relations: bool = True,
+        *,
+        all_pages: bool = True,
+        definitions_page_size: int = 25,
+        relations_page_size: int = 25,
     ) -> UMLSResponse[ConceptProfile]:
         profile_payload: Dict[str, Any] = {
             "concept": _response_payload_result(self.get_cui_info(cui)),
@@ -523,18 +567,46 @@ class TypedCUIAPI(UMLSAPIBase):
             "atoms": [],
         }
         if include_definitions:
-            profile_payload["definitions"] = _response_payload_result(
-                self.get_definitions(cui)
-            )
+            if all_pages:
+                profile_payload["definitions"] = [
+                    item.to_dict()
+                    for item in self.iter_definitions(
+                        cui,
+                        page_size=definitions_page_size,
+                    )
+                ]
+            else:
+                profile_payload["definitions"] = _response_payload_result(
+                    self.get_definitions(cui, page_size=definitions_page_size)
+                )
         if include_relations:
-            profile_payload["relations"] = _response_payload_result(
-                self.get_relations(cui)
-            )
+            if all_pages:
+                profile_payload["relations"] = [
+                    item.to_dict()
+                    for item in self.iter_relations(
+                        cui,
+                        page_size=relations_page_size,
+                    )
+                ]
+            else:
+                profile_payload["relations"] = _response_payload_result(
+                    self.get_relations(cui, page_size=relations_page_size)
+                )
         if include_atoms:
             profile_payload["atoms"] = _response_payload_result(self.get_atoms(cui))
         return UMLSResponse(
             result=ConceptProfile.from_dict(profile_payload),
             raw={"result": profile_payload},
+            request_metadata=request_metadata(
+                path="/content/{0}/CUI/{1}".format(self.version, cui),
+                params={
+                    "profile": True,
+                    "allPages": all_pages,
+                    "includeAtoms": include_atoms,
+                    "includeDefinitions": include_definitions,
+                    "includeRelations": include_relations,
+                },
+            ),
         )
 
     def iter_definitions(
@@ -1522,6 +1594,31 @@ def _iter_paginated(fetch_page: Any) -> Iterator[Any]:
         if not response.page_count or page_number >= response.page_count:
             break
         page_number += 1
+
+
+def _legacy_paginated_result_list(fetch_page: Any) -> list[Any]:
+    results: list[Any] = []
+    page_number = 1
+    while True:
+        payload = _as_payload(fetch_page(page_number))
+        result = payload.get("result", [])
+        if isinstance(result, list):
+            results.extend(result)
+        page_count = _page_count(payload)
+        if not page_count or page_number >= page_count:
+            break
+        page_number += 1
+    return results
+
+
+def _page_count(payload: Mapping[str, Any]) -> Optional[int]:
+    value = payload.get("pageCount")
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def _source_matches(

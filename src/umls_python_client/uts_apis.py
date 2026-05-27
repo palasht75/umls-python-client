@@ -10,6 +10,7 @@ from umls_python_client.errors import UMLSError
 from umls_python_client.exports import save_payload
 from umls_python_client.formatting import render_payload
 from umls_python_client.models import LicenseValidation, ReleaseInfo, UMLSResponse
+from umls_python_client.transport import request_metadata
 
 AUTH_VALIDATE_URL = "https://utslogin.nlm.nih.gov/validateUser"
 DOWNLOAD_URL = "https://uts-ws.nlm.nih.gov/download"
@@ -68,18 +69,23 @@ class TypedAuthAPI(UMLSAPIBase):
         user_api_key: Optional[str] = None,
         validator_api_key: Optional[str] = None,
     ) -> UMLSResponse[LicenseValidation]:
+        params = {
+            "validatorApiKey": validator_api_key or self.api_key,
+            "apiKey": user_api_key or self.api_key,
+        }
         text = self._transport.request_text(
             absolute_url=AUTH_VALIDATE_URL,
-            params={
-                "validatorApiKey": validator_api_key or self.api_key,
-                "apiKey": user_api_key or self.api_key,
-            },
+            params=params,
             auth_required=False,
         )
         payload = _validation_payload_from_text(text)
         return UMLSResponse.from_payload(
             {"result": payload},
             model=LicenseValidation.from_dict,
+            request_metadata=request_metadata(
+                absolute_url=AUTH_VALIDATE_URL,
+                params=params,
+            ),
         )
 
     def validate_api_key(
@@ -133,6 +139,7 @@ class ReleaseAPI(UMLSAPIBase):
             absolute_url=DOWNLOAD_URL,
             params={"url": url},
             auth_required=True,
+            follow_redirects=True,
         )
         target.write_bytes(content)
         return target
@@ -144,14 +151,19 @@ class TypedReleaseAPI(UMLSAPIBase):
         release_type: Optional[str] = None,
         current: Optional[bool] = None,
     ) -> UMLSResponse[ReleaseInfo]:
+        params = {"releaseType": release_type, "current": current}
         payload = self._transport.request(
             absolute_url=RELEASES_URL,
-            params={"releaseType": release_type, "current": current},
+            params=params,
             auth_required=False,
         )
         return UMLSResponse.from_payload(
             _normalize_release_payload(payload),
             model=ReleaseInfo.from_dict,
+            request_metadata=request_metadata(
+                absolute_url=RELEASES_URL,
+                params=params,
+            ),
         )
 
     def get_releases(self, **kwargs: Any) -> UMLSResponse[ReleaseInfo]:
@@ -171,6 +183,7 @@ class TypedReleaseAPI(UMLSAPIBase):
             absolute_url=DOWNLOAD_URL,
             params={"url": url},
             auth_required=True,
+            follow_redirects=True,
         )
         target.write_bytes(content)
         return target

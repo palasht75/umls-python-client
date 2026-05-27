@@ -175,6 +175,9 @@ print(profile.concept.name)
 print([definition.value for definition in profile.definitions])
 ```
 
+Concept profiles fetch all documented definition and relation pages by default.
+Pass `all_pages=False` to keep the older first-page-only behavior.
+
 ### Metadata Lookup
 
 ```python
@@ -201,6 +204,9 @@ with the same authenticated client:
 concept = client.cui_api.get_cui_info("C0011849").result
 atoms = client.follow_url(concept.raw["atoms"])
 ```
+
+Authenticated URL following is restricted to trusted UMLS/UTS hosts so an API
+key is never attached to arbitrary third-party URLs.
 
 ### Release Downloads
 

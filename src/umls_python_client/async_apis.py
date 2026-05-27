@@ -17,7 +17,7 @@ from umls_python_client.models import (
     SourceAtomCluster,
     UMLSResponse,
 )
-from umls_python_client.transport import AsyncUMLSTransport
+from umls_python_client.transport import AsyncUMLSTransport, request_metadata
 
 
 class AsyncAPIBase:
@@ -62,7 +62,15 @@ class AsyncAPIBase:
             absolute_url=absolute_url,
             auth_required=auth_required,
         )
-        return UMLSResponse.from_payload(payload, model=model)
+        return UMLSResponse.from_payload(
+            payload,
+            model=model,
+            request_metadata=request_metadata(
+                path=path,
+                absolute_url=absolute_url,
+                params=params,
+            ),
+        )
 
     async def aclose(self) -> None:
         if self._owns_transport:
@@ -188,6 +196,10 @@ class AsyncCUIAPI(AsyncAPIBase):
         include_atoms: bool = False,
         include_definitions: bool = True,
         include_relations: bool = True,
+        *,
+        all_pages: bool = True,
+        definitions_page_size: int = 25,
+        relations_page_size: int = 25,
     ) -> UMLSResponse[ConceptProfile]:
         profile_payload: Dict[str, Any] = {
             "concept": _response_payload_result(await self.get_cui_info(cui)),
@@ -199,13 +211,37 @@ class AsyncCUIAPI(AsyncAPIBase):
             "atoms": [],
         }
         if include_definitions:
-            profile_payload["definitions"] = _response_payload_result(
-                await self.get_definitions(cui)
-            )
+            if all_pages:
+                profile_payload["definitions"] = [
+                    item.to_dict()
+                    async for item in self.iter_definitions(
+                        cui,
+                        page_size=definitions_page_size,
+                    )
+                ]
+            else:
+                profile_payload["definitions"] = _response_payload_result(
+                    await self.get_definitions(
+                        cui,
+                        page_size=definitions_page_size,
+                    )
+                )
         if include_relations:
-            profile_payload["relations"] = _response_payload_result(
-                await self.get_relations(cui)
-            )
+            if all_pages:
+                profile_payload["relations"] = [
+                    item.to_dict()
+                    async for item in self.iter_relations(
+                        cui,
+                        page_size=relations_page_size,
+                    )
+                ]
+            else:
+                profile_payload["relations"] = _response_payload_result(
+                    await self.get_relations(
+                        cui,
+                        page_size=relations_page_size,
+                    )
+                )
         if include_atoms:
             profile_payload["atoms"] = _response_payload_result(
                 await self.get_atoms(cui)
@@ -213,6 +249,16 @@ class AsyncCUIAPI(AsyncAPIBase):
         return UMLSResponse(
             result=ConceptProfile.from_dict(profile_payload),
             raw={"result": profile_payload},
+            request_metadata=request_metadata(
+                path="/content/{0}/CUI/{1}".format(self.version, cui),
+                params={
+                    "profile": True,
+                    "allPages": all_pages,
+                    "includeAtoms": include_atoms,
+                    "includeDefinitions": include_definitions,
+                    "includeRelations": include_relations,
+                },
+            ),
         )
 
     async def iter_definitions(

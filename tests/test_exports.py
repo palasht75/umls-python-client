@@ -6,7 +6,7 @@ import json
 import httpx
 import pytest
 
-from umls_python_client import UMLSClient, UMLSResponse
+from umls_python_client import TypedUMLSClient, UMLSClient, UMLSResponse
 
 
 def test_response_save_jsonl_csv_and_rdf(tmp_path) -> None:
@@ -58,3 +58,32 @@ def test_client_export_handles_existing_directory_with_suffix(tmp_path) -> None:
 
     assert output == directory / "umls_response.jsonl"
     assert json.loads(output.read_text())["product"] == "UMLS"
+
+
+def test_typed_response_export_uses_request_metadata_for_directory_paths(
+    tmp_path,
+) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json={"result": {"results": [{"ui": "C1", "name": "Heart Attack"}]}},
+        )
+
+    with TypedUMLSClient(
+        api_key="secret",
+        http_transport=httpx.MockTransport(handler),
+    ) as client:
+        response = client.search_api.search("heart attack", page_size=1)
+        output = response.save(tmp_path, format="json")
+        exact_output = client.export(
+            response,
+            tmp_path / "exact-name.json",
+            format="json",
+        )
+
+    assert output.parent == tmp_path
+    assert output.name != "umls_response.json"
+    assert "search" in output.name
+    assert "heart_attack" in output.name
+    assert "secret" not in output.name
+    assert exact_output == tmp_path / "exact-name.json"
