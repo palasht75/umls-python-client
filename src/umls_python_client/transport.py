@@ -70,6 +70,49 @@ class SyncUMLSTransport:
         absolute_url: Optional[str] = None,
         auth_required: bool = True,
     ) -> Dict[str, Any]:
+        return _decode_response(
+            self._request_response(path, params, absolute_url, auth_required)
+        )
+
+    def request_text(
+        self,
+        path: Optional[str] = None,
+        params: Optional[Mapping[str, Any]] = None,
+        absolute_url: Optional[str] = None,
+        auth_required: bool = True,
+    ) -> str:
+        response = self._request_response(path, params, absolute_url, auth_required)
+        if response.status_code >= 400:
+            raise UMLSHTTPError(
+                status_code=response.status_code,
+                message=response.text,
+                url=str(response.url),
+            )
+        return response.text
+
+    def request_bytes(
+        self,
+        path: Optional[str] = None,
+        params: Optional[Mapping[str, Any]] = None,
+        absolute_url: Optional[str] = None,
+        auth_required: bool = True,
+    ) -> bytes:
+        response = self._request_response(path, params, absolute_url, auth_required)
+        if response.status_code >= 400:
+            raise UMLSHTTPError(
+                status_code=response.status_code,
+                message=response.text,
+                url=str(response.url),
+            )
+        return response.content
+
+    def _request_response(
+        self,
+        path: Optional[str],
+        params: Optional[Mapping[str, Any]],
+        absolute_url: Optional[str],
+        auth_required: bool,
+    ) -> httpx.Response:
         if bool(path) == bool(absolute_url):
             raise ValueError("Provide exactly one of path or absolute_url.")
         request_params = clean_params(params)
@@ -91,7 +134,7 @@ class SyncUMLSTransport:
             if response.status_code in RETRY_STATUSES and attempt < self.retries:
                 _sleep(attempt, self.backoff_factor)
                 continue
-            return _decode_response(response)
+            return response
 
         raise UMLSRequestError(str(last_exc) if last_exc else "Request failed.")
 
@@ -139,6 +182,53 @@ class AsyncUMLSTransport:
         absolute_url: Optional[str] = None,
         auth_required: bool = True,
     ) -> Dict[str, Any]:
+        return _decode_response(
+            await self._request_response(path, params, absolute_url, auth_required)
+        )
+
+    async def request_text(
+        self,
+        path: Optional[str] = None,
+        params: Optional[Mapping[str, Any]] = None,
+        absolute_url: Optional[str] = None,
+        auth_required: bool = True,
+    ) -> str:
+        response = await self._request_response(
+            path, params, absolute_url, auth_required
+        )
+        if response.status_code >= 400:
+            raise UMLSHTTPError(
+                status_code=response.status_code,
+                message=response.text,
+                url=str(response.url),
+            )
+        return response.text
+
+    async def request_bytes(
+        self,
+        path: Optional[str] = None,
+        params: Optional[Mapping[str, Any]] = None,
+        absolute_url: Optional[str] = None,
+        auth_required: bool = True,
+    ) -> bytes:
+        response = await self._request_response(
+            path, params, absolute_url, auth_required
+        )
+        if response.status_code >= 400:
+            raise UMLSHTTPError(
+                status_code=response.status_code,
+                message=response.text,
+                url=str(response.url),
+            )
+        return response.content
+
+    async def _request_response(
+        self,
+        path: Optional[str],
+        params: Optional[Mapping[str, Any]],
+        absolute_url: Optional[str],
+        auth_required: bool,
+    ) -> httpx.Response:
         if bool(path) == bool(absolute_url):
             raise ValueError("Provide exactly one of path or absolute_url.")
         request_params = clean_params(params)
@@ -160,7 +250,7 @@ class AsyncUMLSTransport:
             if response.status_code in RETRY_STATUSES and attempt < self.retries:
                 await _async_sleep(attempt, self.backoff_factor)
                 continue
-            return _decode_response(response)
+            return response
 
         raise UMLSRequestError(str(last_exc) if last_exc else "Request failed.")
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, Mapping, Optional
+from typing import Any, Dict, Iterable, Iterator, Mapping, Optional
 
 import httpx
 
@@ -11,7 +11,9 @@ from umls_python_client.errors import UMLSError
 from umls_python_client.formatting import render_payload, save_output_to_file
 from umls_python_client.models import (
     Atom,
+    Attribute,
     Concept,
+    ConceptProfile,
     Definition,
     Relation,
     RootSource,
@@ -195,6 +197,37 @@ class SearchAPI(UMLSAPIBase):
             default_file_name="search_{0}.txt".format(_safe_name(search_string)),
         )
 
+    def bulk_search(
+        self,
+        search_strings: Iterable[str],
+        return_indented: bool = True,
+        format: str = "json",
+        save_to_file: bool = False,
+        file_path: Optional[str] = None,
+        **search_kwargs: Any,
+    ) -> Any:
+        payload = {
+            "result": [
+                {
+                    "query": search_string,
+                    "response": _as_payload(
+                        self.search(
+                            search_string,
+                            return_indented=False,
+                            **search_kwargs,
+                        )
+                    ),
+                }
+                for search_string in search_strings
+            ]
+        }
+        if save_to_file:
+            save_output_to_file(
+                payload,
+                self._resolve_file_path("bulk_search.txt", file_path),
+            )
+        return render_payload(payload, format, return_indented)
+
 
 class TypedSearchAPI(UMLSAPIBase):
     def search(
@@ -228,6 +261,16 @@ class TypedSearchAPI(UMLSAPIBase):
             ),
             model=SearchResult.from_dict,
         )
+
+    def bulk_search(
+        self,
+        search_strings: Iterable[str],
+        **search_kwargs: Any,
+    ) -> Dict[str, UMLSResponse[SearchResult]]:
+        return {
+            search_string: self.search(search_string, **search_kwargs)
+            for search_string in search_strings
+        }
 
 
 class CUIAPI(UMLSAPIBase):
@@ -351,6 +394,50 @@ class CUIAPI(UMLSAPIBase):
             default_file_name="cui_relations_{0}.txt".format(cui),
         )
 
+    def get_concept_profile(
+        self,
+        cui: str,
+        include_atoms: bool = False,
+        include_definitions: bool = True,
+        include_relations: bool = True,
+        return_indented: bool = True,
+        format: str = "json",
+        save_to_file: bool = False,
+        file_path: Optional[str] = None,
+    ) -> Any:
+        payload: Dict[str, Any] = {
+            "result": {
+                "concept": _payload_result(
+                    self.get_cui_info(cui, return_indented=False)
+                ),
+                "preferredAtom": _payload_result(
+                    self.get_preferred_atom(cui, return_indented=False)
+                ),
+                "definitions": [],
+                "relations": [],
+                "atoms": [],
+            }
+        }
+        result = payload["result"]
+        if include_definitions:
+            result["definitions"] = _result_list(
+                self.get_definitions(cui, return_indented=False)
+            )
+        if include_relations:
+            result["relations"] = _result_list(
+                self.get_relations(cui, return_indented=False)
+            )
+        if include_atoms:
+            result["atoms"] = _result_list(self.get_atoms(cui, return_indented=False))
+        if save_to_file:
+            save_output_to_file(
+                payload,
+                self._resolve_file_path(
+                    "concept_profile_{0}.txt".format(cui), file_path
+                ),
+            )
+        return render_payload(payload, format, return_indented)
+
 
 class TypedCUIAPI(UMLSAPIBase):
     def get_cui_info(self, cui: str) -> UMLSResponse[Concept]:
@@ -419,6 +506,73 @@ class TypedCUIAPI(UMLSAPIBase):
                 sabs=sabs,
             ),
             model=Relation.from_dict,
+        )
+
+    def get_concept_profile(
+        self,
+        cui: str,
+        include_atoms: bool = False,
+        include_definitions: bool = True,
+        include_relations: bool = True,
+    ) -> UMLSResponse[ConceptProfile]:
+        profile_payload: Dict[str, Any] = {
+            "concept": _response_payload_result(self.get_cui_info(cui)),
+            "preferredAtom": _response_payload_result(self.get_preferred_atom(cui)),
+            "definitions": [],
+            "relations": [],
+            "atoms": [],
+        }
+        if include_definitions:
+            profile_payload["definitions"] = _response_payload_result(
+                self.get_definitions(cui)
+            )
+        if include_relations:
+            profile_payload["relations"] = _response_payload_result(
+                self.get_relations(cui)
+            )
+        if include_atoms:
+            profile_payload["atoms"] = _response_payload_result(self.get_atoms(cui))
+        return UMLSResponse(
+            result=ConceptProfile.from_dict(profile_payload),
+            raw={"result": profile_payload},
+        )
+
+    def iter_definitions(
+        self,
+        cui: str,
+        sabs: Optional[str] = None,
+        page_size: int = 25,
+    ) -> Iterator[Definition]:
+        yield from _iter_paginated(
+            lambda page_number: self.get_definitions(
+                cui,
+                sabs=sabs,
+                page_number=page_number,
+                page_size=page_size,
+            )
+        )
+
+    def iter_relations(
+        self,
+        cui: str,
+        sabs: Optional[str] = None,
+        include_relation_labels: Optional[str] = None,
+        include_additional_labels: Optional[str] = None,
+        include_obsolete: bool = False,
+        include_suppressible: bool = False,
+        page_size: int = 200,
+    ) -> Iterator[Relation]:
+        yield from _iter_paginated(
+            lambda page_number: self.get_relations(
+                cui,
+                sabs=sabs,
+                include_relation_labels=include_relation_labels,
+                include_additional_labels=include_additional_labels,
+                include_obsolete=include_obsolete,
+                include_suppressible=include_suppressible,
+                page_number=page_number,
+                page_size=page_size,
+            )
         )
 
 
@@ -506,7 +660,7 @@ class SourceAPI(UMLSAPIBase):
         id: str,
         include_attribute_names: Optional[str] = None,
         page_number: int = 1,
-        page_size: int = 200,
+        page_size: int = 25,
         return_indented: bool = True,
         format: str = "json",
         save_to_file: bool = False,
@@ -812,6 +966,7 @@ class SourceAPI(UMLSAPIBase):
         suffix: str,
         kwargs: Dict[str, Any],
     ) -> Any:
+        default_page_size = 200 if suffix in {"ancestors", "descendants"} else 25
         return self._source_endpoint(
             source,
             id,
@@ -820,7 +975,10 @@ class SourceAPI(UMLSAPIBase):
             kwargs.pop("format", "json"),
             kwargs.pop("save_to_file", False),
             kwargs.pop("file_path", None),
-            params={"pageSize": kwargs.pop("page_size", None)},
+            params={
+                "pageNumber": kwargs.pop("page_number", 1),
+                "pageSize": kwargs.pop("page_size", default_page_size),
+            },
         )
 
     def _source_endpoint(
@@ -888,24 +1046,26 @@ class TypedSourceAPI(UMLSAPIBase):
         )
 
     def get_source_parents(
-        self, source: str, id: str, page_size: int = 200
+        self, source: str, id: str, page_number: int = 1, page_size: int = 25
     ) -> UMLSResponse[SourceAtomCluster]:
-        return self._typed_source_list(source, id, "parents", page_size)
+        return self._typed_source_list(source, id, "parents", page_number, page_size)
 
     def get_source_children(
-        self, source: str, id: str, page_size: int = 200
+        self, source: str, id: str, page_number: int = 1, page_size: int = 25
     ) -> UMLSResponse[SourceAtomCluster]:
-        return self._typed_source_list(source, id, "children", page_size)
+        return self._typed_source_list(source, id, "children", page_number, page_size)
 
     def get_source_ancestors(
-        self, source: str, id: str, page_size: int = 200
+        self, source: str, id: str, page_number: int = 1, page_size: int = 200
     ) -> UMLSResponse[SourceAtomCluster]:
-        return self._typed_source_list(source, id, "ancestors", page_size)
+        return self._typed_source_list(source, id, "ancestors", page_number, page_size)
 
     def get_source_descendants(
-        self, source: str, id: str, page_size: int = 200
+        self, source: str, id: str, page_number: int = 1, page_size: int = 200
     ) -> UMLSResponse[SourceAtomCluster]:
-        return self._typed_source_list(source, id, "descendants", page_size)
+        return self._typed_source_list(
+            source, id, "descendants", page_number, page_size
+        )
 
     def get_source_attributes(
         self,
@@ -913,8 +1073,8 @@ class TypedSourceAPI(UMLSAPIBase):
         id: str,
         include_attribute_names: Optional[str] = None,
         page_number: int = 1,
-        page_size: int = 200,
-    ) -> UMLSResponse[Any]:
+        page_size: int = 25,
+    ) -> UMLSResponse[Attribute]:
         return self._typed(
             path="/content/{0}/source/{1}/{2}/attributes".format(
                 self.version, source, id
@@ -924,6 +1084,7 @@ class TypedSourceAPI(UMLSAPIBase):
                 "pageNumber": page_number,
                 "pageSize": page_size,
             },
+            model=Attribute.from_dict,
         )
 
     def get_source_relations(
@@ -952,18 +1113,59 @@ class TypedSourceAPI(UMLSAPIBase):
             model=Relation.from_dict,
         )
 
+    def iter_source_attributes(
+        self,
+        source: str,
+        id: str,
+        include_attribute_names: Optional[str] = None,
+        page_size: int = 25,
+    ) -> Iterator[Attribute]:
+        yield from _iter_paginated(
+            lambda page_number: self.get_source_attributes(
+                source,
+                id,
+                include_attribute_names=include_attribute_names,
+                page_number=page_number,
+                page_size=page_size,
+            )
+        )
+
+    def iter_source_relations(
+        self,
+        source: str,
+        id: str,
+        include_relation_labels: Optional[str] = None,
+        include_additional_labels: Optional[str] = None,
+        include_obsolete: bool = False,
+        include_suppressible: bool = False,
+        page_size: int = 200,
+    ) -> Iterator[Relation]:
+        yield from _iter_paginated(
+            lambda page_number: self.get_source_relations(
+                source,
+                id,
+                include_relation_labels=include_relation_labels,
+                include_additional_labels=include_additional_labels,
+                include_obsolete=include_obsolete,
+                include_suppressible=include_suppressible,
+                page_number=page_number,
+                page_size=page_size,
+            )
+        )
+
     def _typed_source_list(
         self,
         source: str,
         id: str,
         suffix: str,
+        page_number: int,
         page_size: int,
     ) -> UMLSResponse[SourceAtomCluster]:
         return self._typed(
             path="/content/{0}/source/{1}/{2}/{3}".format(
                 self.version, source, id, suffix
             ),
-            params={"pageSize": page_size},
+            params={"pageNumber": page_number, "pageSize": page_size},
             model=SourceAtomCluster.from_dict,
         )
 
@@ -1089,6 +1291,43 @@ class CrosswalkAPI(UMLSAPIBase):
             default_file_name="crosswalk_{0}_{1}.txt".format(source, _safe_name(id)),
         )
 
+    def bulk_crosswalk(
+        self,
+        identifiers: Iterable[str],
+        source: str,
+        target_source: Optional[str] = None,
+        include_obsolete: bool = False,
+        page_size: int = 25,
+        return_indented: bool = True,
+        format: str = "json",
+        save_to_file: bool = False,
+        file_path: Optional[str] = None,
+    ) -> Any:
+        payload = {
+            "result": [
+                {
+                    "id": identifier,
+                    "response": _as_payload(
+                        self.get_crosswalk(
+                            source,
+                            identifier,
+                            target_source=target_source,
+                            include_obsolete=include_obsolete,
+                            page_size=page_size,
+                            return_indented=False,
+                        )
+                    ),
+                }
+                for identifier in identifiers
+            ]
+        }
+        if save_to_file:
+            save_output_to_file(
+                payload,
+                self._resolve_file_path("bulk_crosswalk.txt", file_path),
+            )
+        return render_payload(payload, format, return_indented)
+
 
 class TypedCrosswalkAPI(UMLSAPIBase):
     def get_crosswalk(
@@ -1109,6 +1348,44 @@ class TypedCrosswalkAPI(UMLSAPIBase):
                 "pageSize": page_size,
             },
             model=SourceAtomCluster.from_dict,
+        )
+
+    def bulk_crosswalk(
+        self,
+        identifiers: Iterable[str],
+        source: str,
+        target_source: Optional[str] = None,
+        include_obsolete: bool = False,
+        page_size: int = 25,
+    ) -> Dict[str, UMLSResponse[SourceAtomCluster]]:
+        return {
+            identifier: self.get_crosswalk(
+                source,
+                identifier,
+                target_source=target_source,
+                include_obsolete=include_obsolete,
+                page_size=page_size,
+            )
+            for identifier in identifiers
+        }
+
+    def iter_crosswalk(
+        self,
+        source: str,
+        id: str,
+        target_source: Optional[str] = None,
+        include_obsolete: bool = False,
+        page_size: int = 25,
+    ) -> Iterator[SourceAtomCluster]:
+        yield from _iter_paginated(
+            lambda page_number: self.get_crosswalk(
+                source,
+                id,
+                target_source=target_source,
+                include_obsolete=include_obsolete,
+                page_number=page_number,
+                page_size=page_size,
+            )
         )
 
 
@@ -1157,6 +1434,30 @@ class MetadataAPI(UMLSAPIBase):
             auth_required=False,
         )
 
+    def find_source(
+        self,
+        abbreviation: Optional[str] = None,
+        name: Optional[str] = None,
+        return_indented: bool = True,
+        format: str = "json",
+        save_to_file: bool = False,
+        file_path: Optional[str] = None,
+    ) -> Any:
+        sources = _result_list(self.get_sources(return_indented=False))
+        matched = [
+            source
+            for source in sources
+            if isinstance(source, dict)
+            and _source_matches(source, abbreviation=abbreviation, name=name)
+        ]
+        payload = {"result": matched}
+        if save_to_file:
+            save_output_to_file(
+                payload,
+                self._resolve_file_path("metadata_find_source.txt", file_path),
+            )
+        return render_payload(payload, format, return_indented)
+
 
 class TypedMetadataAPI(UMLSAPIBase):
     def get_sources(self) -> UMLSResponse[RootSource]:
@@ -1165,6 +1466,86 @@ class TypedMetadataAPI(UMLSAPIBase):
             model=RootSource.from_dict,
             auth_required=False,
         )
+
+    def find_source(
+        self,
+        abbreviation: Optional[str] = None,
+        name: Optional[str] = None,
+    ) -> UMLSResponse[RootSource]:
+        response = self.get_sources()
+        sources = _response_result_list(response)
+        matched = [
+            source
+            for source in sources
+            if isinstance(source, RootSource)
+            and _source_matches(
+                source.to_dict(),
+                abbreviation=abbreviation,
+                name=name,
+            )
+        ]
+        return UMLSResponse(
+            result=matched,
+            raw={"result": [source.to_dict() for source in matched]},
+            page_size=len(matched),
+            page_number=1,
+            page_count=1,
+        )
+
+
+def _payload_result(value: Any) -> Any:
+    payload = _as_payload(value)
+    result = payload.get("result")
+    if isinstance(result, dict) and isinstance(result.get("results"), list):
+        return result["results"]
+    return result
+
+
+def _response_payload_result(response: UMLSResponse[Any]) -> Any:
+    return _payload_result(response.to_dict())
+
+
+def _response_result_list(response: UMLSResponse[Any]) -> list[Any]:
+    result = response.result
+    if isinstance(result, list):
+        return result
+    if result is None:
+        return []
+    return [result]
+
+
+def _iter_paginated(fetch_page: Any) -> Iterator[Any]:
+    page_number = 1
+    while True:
+        response = fetch_page(page_number)
+        yield from _response_result_list(response)
+        if not response.page_count or page_number >= response.page_count:
+            break
+        page_number += 1
+
+
+def _source_matches(
+    source: Mapping[str, Any],
+    abbreviation: Optional[str],
+    name: Optional[str],
+) -> bool:
+    if abbreviation is None and name is None:
+        return True
+    if abbreviation is not None:
+        source_abbreviation = source.get("abbreviation")
+        if (
+            isinstance(source_abbreviation, str)
+            and source_abbreviation.lower() == abbreviation.lower()
+        ):
+            return True
+    if name is None:
+        return False
+    needle = name.lower()
+    for key in ("preferredName", "expandedForm", "shortName", "family"):
+        value = source.get(key)
+        if isinstance(value, str) and needle in value.lower():
+            return True
+    return False
 
 
 def _search_params(

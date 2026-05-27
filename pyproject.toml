@@ -41,10 +41,15 @@ dev = [
   "pytest-asyncio>=0.23.0",
   "ruff>=0.6.0",
 ]
+docs = [
+  "mkdocs>=1.6.0,<2.0",
+  "mkdocs-material>=9.5.0,<10.0",
+  "mkdocstrings[python]>=0.25.0,<1.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/palasht75/umls-python-client"
-Documentation = "https://palasht75.github.io/umls-python-client-homepage/"
+Documentation = "https://palasht75.github.io/umls-python-client/"
 Issues = "https://github.com/palasht75/umls-python-client/issues"
 Source = "https://github.com/palasht75/umls-python-client"
 
@@ -79,3 +84,7 @@ warn_unused_configs = true
 no_implicit_optional = true
 ignore_missing_imports = true
 check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = ["click", "rdflib"]
+follow_imports = "skip"
